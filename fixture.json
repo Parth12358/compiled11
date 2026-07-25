@@ -1,0 +1,17 @@
+{
+  "client": { "url": "https://example.com", "repo": "org/repo", "name": "Example" },
+  "score": { "visibility": 0.13, "cited_queries": 4, "total_queries": 30 },
+  "sources": [
+    { "domain": "g2.com", "citation_count": 18, "client_present": false },
+    { "domain": "reddit.com", "citation_count": 11, "client_present": true }
+  ],
+  "gaps": [
+    { "keyword": "best X for Y", "type": "missing_page", "citations": 7 }
+  ],
+  "actions": [
+    { "type": "meta", "file": "index.html", "before": "...", "after": "..." },
+    { "type": "new_page", "file": "blog/best-x-for-y.md", "after": "..." }
+  ],
+  "pr_url": null,
+  "indexnow_submitted_at": null
+}

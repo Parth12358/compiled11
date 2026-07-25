@@ -74,6 +74,28 @@ async function complete(system: string, user: string): Promise<string | null> {
     return null;
   }
 }
+function parseLoose(raw: string | null): Record<string, unknown> | null {
+  if (!raw) return null;
+  let s = raw.trim();
+  if (!s) return null;
+
+  s = s.replace(/^\s*```(?:json)?\s*\n?/, "");
+  s = s.replace(/\n?\s*```\s*$/, "");
+
+  try {
+    return JSON.parse(s) as Record<string, unknown>;
+  } catch {}
+
+  const firstBrace = s.indexOf("{");
+  const lastBrace = s.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    try {
+      return JSON.parse(s.slice(firstBrace, lastBrace + 1)) as Record<string, unknown>;
+    } catch {}
+  }
+
+  return null;
+}
 
 export function buildRobotsAction(audit: AuditResult): RobotsTxtAction | null {
   if (!audit.robots_txt) return null;
@@ -268,28 +290,40 @@ gap_keywords: ${gapKeywords || "(none)"}`;
   const llmResult = await complete(META_SYSTEM_PROMPT, userPrompt);
 
   if (llmResult) {
-    try {
-      const trimmed = llmResult.trim();
-      const parsed = JSON.parse(trimmed);
-      if (typeof parsed.title === "string" && typeof parsed.description === "string") {
-        const title = String(parsed.title).slice(0, 60);
-        const desc = String(parsed.description).slice(0, 155);
-        const rationale =
-          typeof parsed.rationale === "string"
-            ? parsed.rationale
-            : "Original title lacked keyword and location signals.";
+    const parsed = parseLoose(llmResult);
+    if (parsed && typeof parsed.title === "string" && typeof parsed.description === "string") {
+      const title = String(parsed.title).slice(0, 60);
+      const desc = String(parsed.description).slice(0, 155);
+      const rationale =
+        typeof parsed.rationale === "string"
+          ? parsed.rationale
+          : "Original title lacked keyword and location signals.";
 
-        return {
-          type: "meta",
-          file: "index.html",
-          before: beforeHtml,
-          after: `<title>${title}</title>\n<meta name="description" content="${desc}">`,
-          rationale,
-        };
-      }
-    } catch {
-      console.error("Failed to parse LLM meta response, falling back to deterministic");
+      return {
+        type: "meta",
+        file: "index.html",
+        before: beforeHtml,
+        after: `<title>${title}</title>\n<meta name="description" content="${desc}">`,
+        rationale,
+      };
     }
+
+    const rawText = llmResult.trim();
+    const titleMatch = rawText.match(/<title>([^<]*)<\/title>/i);
+    const descMatch = rawText.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+    if (titleMatch && descMatch) {
+      return {
+        type: "meta",
+        file: "index.html",
+        before: beforeHtml,
+        after: `<title>${titleMatch[1].slice(0, 60)}</title>\n<meta name="description" content="${descMatch[1].slice(0, 155)}">`,
+        rationale: "Extracted title and description from raw LLM output via regex fallback.",
+      };
+    }
+
+    console.error(
+      `buildMetaAction: failed to parse LLM response. Raw (first 200 chars): ${rawText.slice(0, 200)}`
+    );
   }
 
   if (!audit.title && !client.name) return null;
@@ -364,24 +398,42 @@ Generate a markdown page targeting this keyword.`;
   const llmResult = await complete(PAGE_SYSTEM_PROMPT, userPrompt);
 
   if (llmResult) {
-    try {
-      const trimmed = llmResult.trim();
-      const parsed = JSON.parse(trimmed);
-      if (typeof parsed.content === "string") {
-        return {
-          type: "new_page",
-          file,
-          after: parsed.content,
-          targets_keyword: gap.keyword,
-          rationale:
-            typeof parsed.rationale === "string"
-              ? parsed.rationale
-              : `Targets gap keyword "${gap.keyword}" with ${gap.citations} citations${gap.competing_domains?.length ? ` to ${gap.competing_domains.length} competing domains` : ""}.`,
-        };
-      }
-    } catch {
-      console.error("Failed to parse LLM gap page response, falling back to deterministic");
+    const parsed = parseLoose(llmResult);
+    if (parsed && typeof parsed.content === "string") {
+      return {
+        type: "new_page",
+        file,
+        after: parsed.content,
+        targets_keyword: gap.keyword,
+        rationale:
+          typeof parsed.rationale === "string"
+            ? parsed.rationale
+            : `Targets gap keyword "${gap.keyword}" with ${gap.citations} citations${gap.competing_domains?.length ? ` to ${gap.competing_domains.length} competing domains` : ""}.`,
+      };
     }
+
+    const rawText = llmResult.trim();
+    const hasHeading = /^#{1,6}\s/m.test(rawText);
+    const hasFrontMatter = rawText.startsWith("---");
+    if (rawText && (hasHeading || hasFrontMatter)) {
+      let content = rawText;
+      if (!hasFrontMatter) {
+        const fmTitle = titleCase(gap.keyword);
+        const fmDesc = `Information about ${gap.keyword} from ${client.name}.`;
+        content = `---\ntitle: "${fmTitle}"\ndescription: "${fmDesc}"\n---\n\n${content}`;
+      }
+      return {
+        type: "new_page",
+        file,
+        after: content,
+        targets_keyword: gap.keyword,
+        rationale: `LLM returned a raw markdown page targeting "${gap.keyword}" (parsed outside JSON wrapper).`,
+      };
+    }
+
+    console.error(
+      `buildGapPageAction: failed to parse LLM response. Raw (first 200 chars): ${rawText.slice(0, 200)}`
+    );
   }
 
   const fallbackContent = `---

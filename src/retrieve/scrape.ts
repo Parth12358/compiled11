@@ -75,11 +75,16 @@ function readMeta(html: string, name: string): string | null {
   return backward ? decodeEntities(backward[1].trim()) : null;
 }
 
-/** Take the descriptive segment of a title, dropping a leading brand name. */
+/** Take the most useful category segment from a title, dropping taglines. */
 function cleanTitle(title: string): string {
   const segments = title.split(/[|\-–—:•]/).map((s) => s.trim()).filter(Boolean);
-  // Prefer the longest segment — usually the descriptive phrase, not the brand.
-  return segments.sort((a, b) => b.length - a.length)[0] ?? title.trim();
+  if (segments.length <= 1) return title.trim();
+  // Prefer short segments (>= 2 chars) — brand/product names are short.
+  // Long segments are typically taglines ("Source platform for everything user").
+  const short = segments
+    .filter((s) => s.length >= 2)
+    .sort((a, b) => a.length - b.length);
+  return short[0] ?? title.trim();
 }
 
 function normalizeUrl(url: string): string {

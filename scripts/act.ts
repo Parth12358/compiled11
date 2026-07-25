@@ -104,15 +104,32 @@ async function main() {
     console.error("  Saved to ./cited-metadata.txt\n");
   }
 
-  // Other actions
-  const other = output.actions.filter((a) => a.type !== "meta");
-  if (other.length) {
-    console.error("═══ OTHER FIXES ═══\n");
-    for (const a of other) {
-      console.error(`  • ${a.type}: ${(a as any).file || ""}`);
-      console.error(`    ${(a as any).rationale || ""}`);
-      console.error("");
+  // Other actions — save each to disk
+  for (const a of output.actions) {
+    if (a.type === "meta") continue;
+
+    let filename = "";
+    const content = (a as any).after ?? "";
+    if (!content) continue;
+
+    if (a.type === "robots_txt") {
+      filename = "cited-robots.txt";
+    } else if (a.type === "llms_txt") {
+      filename = "cited-llms.txt";
+    } else if (a.type === "new_page") {
+      filename = `cited-${(a as any).file?.split("/").pop() ?? "page.md"}`;
+    } else {
+      filename = `cited-${a.type}.txt`;
     }
+
+    if (filename && content) {
+      await fs.writeFile(path.join(process.cwd(), filename), content + "\n");
+      console.error(`  Saved to ./${filename}`);
+    }
+  }
+
+  if (output.actions.filter((a) => a.type !== "meta").length) {
+    console.error("");
   }
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);

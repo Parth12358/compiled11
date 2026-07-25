@@ -4,6 +4,9 @@
 
 CITED points an answer engine at your category, finds out which sources it actually reads, tells you where you're missing — and opens the pull request that fixes it.
 
+Website: [trial link](https://compiled11.vercel.app/)
+This commit only adds this cause we forgot, thx
+
 Built at [c0mpiled Startup School Hackathon](https://lu.ma/), 24 July 2026 · Transpose Platform, San Francisco.
 
 Test client: **BR Gutter Pros** (`https://brgutterpros.com`), a gutter company in Baton Rouge, LA.

@@ -15,7 +15,11 @@ import { deriveGaps } from "./gaps";
 import { generateActions } from "./generate";
 import { openPr, parseRepoRef } from "./github";
 import { pingIndexNow } from "./indexnow";
-import { retrieve } from "../retrieve";
+import { aggregate, extractDomain } from "../retrieve/aggregate";
+import { runDeepSeek, runOpenAI } from "../retrieve/engine";
+import { buildQueries } from "../retrieve/queries";
+import { scrapeHomepage } from "../retrieve/scrape";
+import type { EngineResult } from "../retrieve/types";
 
 import type { Action, Client, Gap, Report, Score, Source } from "../ui/types";
 import type { PrResult, RetrieveOutput, RetrieveQuery, SiteAudit } from "./types";
@@ -183,6 +187,41 @@ function coerceRetrieve(v: unknown): RetrieveOutput | null {
   return out;
 }
 
+/** Live retrieval composed from Person A's exported primitives so the seam
+ *  also carries per-query results (deriveGaps rung 1 needs them; A's own
+ *  retrieve() returns only the aggregate). No A files are modified. */
+async function liveRetrieveWithQueries(clientUrl: string): Promise<RetrieveOutput> {
+  const clientDomain = extractDomain(clientUrl);
+  const { category, keywords } = await scrapeHomepage(clientUrl);
+  const queryList = buildQueries(category, keywords);
+  const tasks: Promise<EngineResult[]>[] = [];
+  if (process.env.OPENAI_API_KEY) tasks.push(runOpenAI(queryList));
+  if (process.env.DEEPSEEK_API_KEY) tasks.push(runDeepSeek(queryList));
+  if (tasks.length === 0) {
+    return { score: { visibility: 0, cited_queries: 0, total_queries: 0 }, sources: [] };
+  }
+  const combined = (await Promise.all(tasks)).flat();
+  const agg = aggregate(combined, clientDomain);
+  const byQuery = new Map<string, Set<string>>();
+  for (const r of combined) {
+    const set = byQuery.get(r.query) ?? new Set<string>();
+    for (const u of r.urls) set.add(u);
+    byQuery.set(r.query, set);
+  }
+  const queries: RetrieveQuery[] = [...byQuery.entries()].map(([query, urls]) => ({
+    query,
+    cited: [...urls].some((u) => {
+      try {
+        return extractDomain(u) === clientDomain;
+      } catch {
+        return false;
+      }
+    }),
+    citations: [...urls],
+  }));
+  return { score: agg.score, sources: agg.sources, queries };
+}
+
 /** Precedence ladder per PRD-B §3.6 + the in-process addendum:
  *  (a) --retrieve file (or default out/retrieve.json when it exists)
  *  (b) Person A's retrieve() when an engine key is set — EMPTY output rejected
@@ -206,10 +245,10 @@ async function resolveRetrieveInput(
 
   if (process.env.OPENAI_API_KEY || process.env.DEEPSEEK_API_KEY) {
     try {
-      const live = await retrieve(clientUrl);
+      const live = await liveRetrieveWithQueries(clientUrl);
       if (live.sources.length > 0 || live.score.total_queries > 0) {
-        console.error("[act] score/sources from live retrieve module");
-        return { data: { score: live.score, sources: live.sources }, origin: "live retrieve" };
+        console.error(`[act] score/sources from live retrieve (${live.queries?.length ?? 0} per-query results)`);
+        return { data: live, origin: "live retrieve" };
       }
       console.error("[act] live retrieve returned an empty result — trying fixture");
     } catch (e) {

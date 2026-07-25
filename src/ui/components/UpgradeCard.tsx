@@ -5,9 +5,9 @@ import { useHexclaveApp, useUser } from "@hexclave/next";
 import { hexclaveEnabled } from "@/hexclave/client";
 import styles from "./UpgradeCard.module.css";
 
-// Must match the "Pro Monthly" product in the Hexclave dashboard
-// (Apps → Payments → Products & Items). Test mode → checkout is free.
-const PRO_PRODUCT_ID = "prod_pro_monthly";
+// Matches the "Pro Plan" product in the Hexclave dashboard
+// (Apps → Payments → Products): $99.99/mo, 3-day free trial.
+const PRO_PRODUCT_ID = "pro-plan";
 
 /** Hexclave not linked yet must never break the demo page. */
 class Guard extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
@@ -45,7 +45,7 @@ function CheckoutButton() {
 
   return (
     <button type="button" className={`${styles.buy} mono`} onClick={buy} disabled={busy}>
-      {busy ? "opening checkout…" : "start pro — $99/mo"}
+      {busy ? "opening checkout…" : "start pro — $99.99/mo"}
     </button>
   );
 }
@@ -83,7 +83,7 @@ export function UpgradeCard() {
       disabled
       title="Connect Hexclave to enable checkout"
     >
-      start pro — $99/mo
+      start pro — $99.99/mo
     </button>
   );
 
@@ -107,7 +107,7 @@ export function UpgradeCard() {
         ) : (
           fallbackBtn
         )}
-        <span className={`${styles.note} mono`}>payments via hexclave · test mode</span>
+        <span className={`${styles.note} mono`}>3-day free trial · payments via hexclave</span>
       </div>
     </aside>
   );

@@ -1,10 +1,11 @@
-# CITED — Recommended metadata update for https://getknova.dev
-# Generated: 2026-07-25T04:56:12.249Z
+# CITED — Recommended metadata update for --url
+# Generated: 2026-07-25T05:17:39.544Z
 
 # BEFORE
-title: Knova
-description: (none)
+<title>(missing)</title>
+<meta name="description" content="(missing)">
 
 # AFTER
-title: Knova - Best Knova Software & Free Tools
-description: Discover the best free Knova tools and the top-rated Knova software to streamline your workflow, boost productivity, and achieve more without breaking the bank.
+<title>--url — What is url</title>
+<meta name="description" content="--url is a what is url option with clear docs, honest comparisons, and a quick path to a first useful result.">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"--url","applicationCategory":"What is url","operatingSystem":"Web"}</script>

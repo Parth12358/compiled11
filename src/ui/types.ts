@@ -23,6 +23,7 @@ export interface Gap {
   keyword: string;
   type: string; // "missing_page" | "thin_content" | ...
   citations: number;
+  competing_domains?: string[]; // optional enrichment (contract.ts / scripts/act.ts)
 }
 
 export interface Action {

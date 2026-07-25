@@ -15,11 +15,8 @@ import { deriveGaps } from "./gaps";
 import { generateActions } from "./generate";
 import { openPr, parseRepoRef } from "./github";
 import { pingIndexNow } from "./indexnow";
-import { aggregate, extractDomain } from "../retrieve/aggregate";
-import { runDeepSeek, runOpenAI } from "../retrieve/engine";
-import { buildQueries } from "../retrieve/queries";
-import { scrapeHomepage } from "../retrieve/scrape";
-import type { EngineResult } from "../retrieve/types";
+import { retrieve } from "../retrieve";
+import type { QueryResult } from "../retrieve/types";
 
 import type { Action, Client, Gap, Report, Score, Source } from "../ui/types";
 import type { PrResult, RetrieveOutput, RetrieveQuery, SiteAudit } from "./types";
@@ -187,39 +184,16 @@ function coerceRetrieve(v: unknown): RetrieveOutput | null {
   return out;
 }
 
-/** Live retrieval composed from Person A's exported primitives so the seam
- *  also carries per-query results (deriveGaps rung 1 needs them; A's own
- *  retrieve() returns only the aggregate). No A files are modified. */
+/** A's retrieve() now returns per-query results natively (90s deadline,
+ *  partial aggregation). Adapt its QueryResult shape to the act seam. */
+function adaptQueries(qs: QueryResult[] | undefined): RetrieveQuery[] | undefined {
+  if (!qs || qs.length === 0) return undefined;
+  return qs.map((q) => ({ query: q.query, cited: q.client_cited, citations: q.cited_urls }));
+}
+
 async function liveRetrieveWithQueries(clientUrl: string): Promise<RetrieveOutput> {
-  const clientDomain = extractDomain(clientUrl);
-  const { category, keywords } = await scrapeHomepage(clientUrl);
-  const queryList = buildQueries(category, keywords);
-  const tasks: Promise<EngineResult[]>[] = [];
-  if (process.env.OPENAI_API_KEY) tasks.push(runOpenAI(queryList));
-  if (process.env.DEEPSEEK_API_KEY) tasks.push(runDeepSeek(queryList));
-  if (tasks.length === 0) {
-    return { score: { visibility: 0, cited_queries: 0, total_queries: 0 }, sources: [] };
-  }
-  const combined = (await Promise.all(tasks)).flat();
-  const agg = aggregate(combined, clientDomain);
-  const byQuery = new Map<string, Set<string>>();
-  for (const r of combined) {
-    const set = byQuery.get(r.query) ?? new Set<string>();
-    for (const u of r.urls) set.add(u);
-    byQuery.set(r.query, set);
-  }
-  const queries: RetrieveQuery[] = [...byQuery.entries()].map(([query, urls]) => ({
-    query,
-    cited: [...urls].some((u) => {
-      try {
-        return extractDomain(u) === clientDomain;
-      } catch {
-        return false;
-      }
-    }),
-    citations: [...urls],
-  }));
-  return { score: agg.score, sources: agg.sources, queries };
+  const live = await retrieve(clientUrl);
+  return { score: live.score, sources: live.sources, queries: adaptQueries(live.queries) };
 }
 
 /** Precedence ladder per PRD-B §3.6 + the in-process addendum:
@@ -397,3 +371,41 @@ main().catch((e) => {
   // Degraded runs exit 0 (PRD-B §3.6); nonzero is reserved for unusable args.
   console.error(`[act] fatal: ${msg(e)}`);
 });
+
+// ---------------------------------------------------------------- act() API
+// Bridge for scripts/act.ts (Parth's runner): audit → gaps → generate without
+// the PR/report steps. Accepts A's contract QueryResult shape directly.
+import type { QueryResult as ContractQueryResult } from "../contract";
+
+export interface ActInput {
+  client: { url: string; repo: string; name: string };
+  queries: ContractQueryResult[];
+  sources: Source[];
+  live?: { generate?: boolean };
+}
+
+export async function act(
+  input: ActInput
+): Promise<{ gaps: Gap[]; actions: Action[] }> {
+  const url = input.client.url.includes("://") ? input.client.url : `https://${input.client.url}`;
+  const client: Client = {
+    url: url.replace(/\/+$/, ""),
+    repo: input.client.repo,
+    name: input.client.name || new URL(url).hostname,
+  };
+  const audit = await auditSite(client.url);
+  const queries: RetrieveQuery[] = input.queries.map((q) => ({
+    query: q.query,
+    cited: q.client_cited,
+    citations: q.cited_urls,
+  }));
+  const total = queries.length;
+  const cited = queries.filter((q) => q.cited).length;
+  const gaps = deriveGaps(client, audit, {
+    score: { visibility: total ? cited / total : 0, cited_queries: cited, total_queries: total },
+    sources: input.sources,
+    queries,
+  });
+  const actions = await generateActions(client, audit, gaps);
+  return { gaps, actions };
+}

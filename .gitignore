@@ -2,3 +2,5 @@ node_modules/
 .next/
 .env
 cache/
+report.json
+out/

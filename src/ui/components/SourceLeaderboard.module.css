@@ -1,0 +1,124 @@
+/* SourceLeaderboard — ranked citation bars; client presence glows amber. */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2.2em minmax(0, 15em) 1fr 3.5em 6.5em;
+  grid-template-areas: "rank domain bar count presence";
+  align-items: center;
+  column-gap: 16px;
+  padding-block: 14px;
+  padding-inline: 14px;
+  margin-inline: -14px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+
+.row:hover {
+  background-color: rgba(242, 238, 227, 0.03);
+}
+
+/* Presence: amber-soft wash fading rightward + a 2px amber left rule.
+   The rule and wash sit in the rows' negative-margin bleed, so the
+   data columns stay aligned. */
+.present {
+  background-image: linear-gradient(90deg, var(--amber-soft), transparent 65%);
+  box-shadow: inset 2px 0 0 var(--amber);
+}
+
+.rank {
+  grid-area: rank;
+  font-size: 12px;
+  color: var(--cream-faint);
+}
+
+.domain {
+  grid-area: domain;
+  font-size: 14px;
+  color: var(--cream);
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.barTrack {
+  grid-area: bar;
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 4px;
+  transition:
+    width var(--t-slow) var(--ease-out) var(--d, 0ms),
+    filter var(--t-fast) var(--ease-out);
+}
+
+.fillPresent {
+  background: var(--amber);
+  box-shadow: 0 0 12px var(--amber-glow);
+}
+
+.fillAbsent {
+  background: var(--slate);
+}
+
+.list:global(.is-in) .fill {
+  width: var(--w, 0%);
+}
+
+.row:hover .fill {
+  filter: brightness(1.1);
+}
+
+.count {
+  grid-area: count;
+  font-size: 13px;
+  color: var(--cream);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.presence {
+  grid-area: presence;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.cited {
+  color: var(--amber);
+}
+
+.absent {
+  color: var(--cream-faint);
+}
+
+@media (max-width: 768px) {
+  .row {
+    grid-template-columns: 2.2em minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "rank domain count presence"
+      ".    bar    bar   bar";
+    row-gap: 10px;
+  }
+}
+
+/* Final state must never depend on the animation having run. */
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    width: var(--w, 0%);
+    transition-delay: 0ms;
+  }
+}

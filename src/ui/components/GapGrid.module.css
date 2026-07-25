@@ -1,0 +1,84 @@
+/* GapGrid — the missed questions. Cards rise in; hover warms the border. */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Reveal uses the `translate` property, hover uses `transform` — the two
+   compose, so the staggered rise never fights the fast hover lift. */
+.card {
+  background: var(--night-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  opacity: 0;
+  translate: 0 16px;
+  transition:
+    opacity var(--t-slow) var(--ease-out) var(--d, 0ms),
+    translate var(--t-slow) var(--ease-out) var(--d, 0ms),
+    transform var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out);
+}
+
+.grid:global(.is-in) .card {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: var(--amber-glow);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.badge {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--cream-dim);
+  white-space: nowrap;
+}
+
+.citations {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--cream-dim);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.keyword {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--cream);
+  overflow-wrap: break-word;
+}
+
+/* Final state must never depend on the animation having run. */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    opacity: 1;
+    translate: none;
+    transition-delay: 0ms;
+  }
+}

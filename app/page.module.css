@@ -1,0 +1,200 @@
+.revealed {
+  animation: fadeIn 500ms ease both;
+}
+
+/* floating pill nav in the ink world */
+.topbar {
+  position: sticky;
+  top: 14px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  margin-inline: auto;
+  padding: 9px 12px 9px 20px;
+  background: rgba(11, 16, 30, 0.78);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.wordmark {
+  font-family: var(--font-display), serif;
+  font-weight: 640;
+  font-size: 19px;
+  color: var(--cream);
+}
+
+.wordmarkSup {
+  color: var(--amber);
+  font-size: 11px;
+  margin-left: 1px;
+}
+
+.clientChip {
+  font-size: 11.5px;
+  color: var(--cream-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 13px;
+}
+
+.rightGroup {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rerun {
+  font-size: 12px;
+  color: var(--cream-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 16px;
+  transition: color var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+
+.rerun:hover {
+  color: var(--cream);
+  border-color: var(--line-strong);
+}
+
+/* sections */
+.sect {
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+
+/* SEC—NN margin tag, print-document style */
+.secTag {
+  position: absolute;
+  top: 26px;
+  left: clamp(12px, 1.6vw, 26px);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--cream-faint);
+  user-select: none;
+}
+
+.secNo {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--amber);
+  margin-bottom: 14px;
+  opacity: 0;
+  translate: 0 14px;
+  transition: opacity var(--t-slow) var(--ease-out), translate var(--t-slow) var(--ease-out);
+}
+
+.sect:global(.is-in) .secNo {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.sectInner {
+  position: relative;
+}
+
+.sectBg {
+  position: relative;
+}
+
+.sectBg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/assets/constellation.jpg") center / cover no-repeat;
+  opacity: 0.2;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, transparent, black 28%, black 72%, transparent);
+}
+
+.sect :global(.eyebrow) {
+  opacity: 0;
+  translate: 0 14px;
+  transition: opacity var(--t-slow) var(--ease-out), translate var(--t-slow) var(--ease-out);
+}
+
+.h2 {
+  font-family: var(--font-display), serif;
+  font-weight: 500;
+  font-size: clamp(30px, 3.8vw, 46px);
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin: 16px 0 12px;
+  max-width: 22ch;
+  opacity: 0;
+  translate: 0 22px;
+  transition: opacity var(--t-slow) var(--ease-out) 80ms, translate var(--t-slow) var(--ease-out) 80ms;
+}
+
+.note {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--cream-dim);
+  max-width: 62ch;
+  margin-bottom: 40px;
+  opacity: 0;
+  transition: opacity var(--t-slow) var(--ease-out) 180ms;
+}
+
+.sect:global(.is-in) :global(.eyebrow),
+.sect:global(.is-in) .h2,
+.sect:global(.is-in) .note {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.sect:global(.is-in) .note {
+  opacity: 0.999;
+}
+
+/* closing line */
+.close {
+  margin-top: 64px;
+  font-family: var(--font-display), serif;
+  font-weight: 480;
+  font-size: clamp(26px, 3.2vw, 40px);
+  line-height: 1.25;
+  max-width: 30ch;
+}
+
+.closeAmber {
+  color: var(--amber);
+  text-shadow: 0 0 36px var(--amber-glow);
+}
+
+/* giant closing wordmark — the final frame */
+.brandClose {
+  font-family: var(--font-display), serif;
+  font-weight: 560;
+  font-size: clamp(96px, 16vw, 240px);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: var(--cream);
+  padding: clamp(60px, 9vh, 110px) 20px 10px;
+  user-select: none;
+}
+
+.brandSup {
+  color: var(--amber);
+  font-size: 0.28em;
+  vertical-align: 1.6em;
+  text-shadow: 0 0 40px var(--amber-glow);
+}
+
+/* footer */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 30px clamp(20px, 4vw, 48px) 44px;
+  font-size: 11px;
+  color: var(--cream-faint);
+}

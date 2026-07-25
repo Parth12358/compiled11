@@ -1,0 +1,82 @@
+/* ScoreArc — hero visibility gauge. Amber presence drawn over a cold track. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.dial {
+  position: relative;
+  width: min(230px, 100%);
+  aspect-ratio: 1;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.track {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 3;
+}
+
+.progress {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 6px var(--amber-glow));
+  transition: stroke-dashoffset 1400ms var(--ease-out);
+}
+
+.root:global(.is-in) .progress {
+  stroke-dashoffset: var(--arc-offset, 0);
+}
+
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.value {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 64px;
+  font-weight: 560;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cream);
+}
+
+.detail,
+.caption {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--cream-dim);
+}
+
+.caption {
+  text-align: center;
+}
+
+/* Final state must never depend on the animation having run. */
+@media (prefers-reduced-motion: reduce) {
+  .progress {
+    stroke-dashoffset: var(--arc-offset, 0);
+    transition: none;
+  }
+}

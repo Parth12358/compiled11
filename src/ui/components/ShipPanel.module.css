@@ -1,0 +1,161 @@
+/* ShipPanel — PR + IndexNow cards. Ink world; staggered rise on reveal.
+   Tokens only; keyframes local so CSS-module scoping can never orphan them. */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--night-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  opacity: 0;
+  translate: 0 22px;
+  transition:
+    opacity var(--t-slow) var(--ease-out),
+    translate var(--t-slow) var(--ease-out);
+}
+
+.card:nth-child(2) {
+  transition-delay: 120ms;
+}
+
+.grid:global(.is-in) .card {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cream-faint);
+}
+
+/* One of the few serif moments in the ink world — earned, here. */
+.title {
+  margin-top: 10px;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--cream);
+}
+
+/* ———— card 1: pull request ———— */
+
+.prLink {
+  margin-top: 22px;
+  display: inline-block;
+  background: var(--amber);
+  color: var(--night);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition:
+    filter var(--t-fast) var(--ease-out),
+    translate var(--t-fast) var(--ease-out);
+}
+
+.prLink:hover {
+  filter: brightness(1.08);
+  translate: 0 -1px;
+}
+
+.repo {
+  margin-top: 14px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--cream-dim);
+}
+
+.ghostBtn {
+  margin-top: 22px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cream-dim);
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.ghostBtn:hover {
+  border-color: var(--amber);
+  color: var(--cream);
+}
+
+.caption {
+  margin-top: 14px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--cream-faint);
+}
+
+/* ———— card 2: discovery ———— */
+
+.status {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--cream);
+}
+
+.statusIdle {
+  color: var(--cream-dim);
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--slate);
+}
+
+.dotLive {
+  background: var(--amber);
+  box-shadow: 0 0 12px var(--amber-glow);
+  animation: dotPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Global CSS zeroes durations; the stagger delay is ours to zero. */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition-delay: 0ms !important;
+  }
+}

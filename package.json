@@ -3,19 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "act": "tsx src/act/index.ts",
+    "dev": "hexclave dev --config-file ./hexclave.config.ts -- node scripts/dev.js",
+    "dev:plain": "node scripts/dev.js",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@hexclave/next": "^1.0.64",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },
   "devDependencies": {
+    "@hexclave/cli": "^1.0.64",
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.0",
+    "tsx": "^4.23.1",
     "typescript": "^5.4.0"
   }
 }

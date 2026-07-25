@@ -1,16 +1,44 @@
 {
-  "client": { "url": "https://example.com", "repo": "org/repo", "name": "Example" },
+  "client": {
+    "url": "https://lumenanalytics.io",
+    "repo": "lumen/site",
+    "name": "Lumen Analytics"
+  },
   "score": { "visibility": 0.13, "cited_queries": 4, "total_queries": 30 },
   "sources": [
     { "domain": "g2.com", "citation_count": 18, "client_present": false },
-    { "domain": "reddit.com", "citation_count": 11, "client_present": true }
+    { "domain": "reddit.com", "citation_count": 11, "client_present": true },
+    { "domain": "capterra.com", "citation_count": 9, "client_present": false },
+    { "domain": "medium.com", "citation_count": 7, "client_present": false },
+    { "domain": "github.com", "citation_count": 6, "client_present": true },
+    { "domain": "news.ycombinator.com", "citation_count": 5, "client_present": false },
+    { "domain": "producthunt.com", "citation_count": 4, "client_present": false },
+    { "domain": "dev.to", "citation_count": 3, "client_present": false },
+    { "domain": "softwareadvice.com", "citation_count": 2, "client_present": false }
   ],
   "gaps": [
-    { "keyword": "best X for Y", "type": "missing_page", "citations": 7 }
+    { "keyword": "best product analytics for startups", "type": "missing_page", "citations": 7 },
+    { "keyword": "lumen analytics vs amplitude", "type": "missing_page", "citations": 5 },
+    { "keyword": "open source product analytics", "type": "thin_content", "citations": 4 },
+    { "keyword": "product analytics pricing comparison", "type": "missing_page", "citations": 3 }
   ],
   "actions": [
-    { "type": "meta", "file": "index.html", "before": "...", "after": "..." },
-    { "type": "new_page", "file": "blog/best-x-for-y.md", "after": "..." }
+    {
+      "type": "meta",
+      "file": "index.html",
+      "before": "<title>Lumen — Home</title>\n<meta name=\"description\" content=\"Welcome to Lumen.\">",
+      "after": "<title>Lumen Analytics — Product analytics for startups</title>\n<meta name=\"description\" content=\"Open-source product analytics for startups: funnels, retention, and session replay on your own infrastructure. Free tier, 10-minute setup.\">\n<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"SoftwareApplication\",\"name\":\"Lumen Analytics\",\"applicationCategory\":\"Product analytics\",\"operatingSystem\":\"Web\",\"offers\":{\"@type\":\"Offer\",\"price\":\"0\",\"priceCurrency\":\"USD\"}}</script>"
+    },
+    {
+      "type": "new_page",
+      "file": "llms.txt",
+      "after": "# Lumen Analytics\n> Open-source product analytics for startups: funnels, retention, and session replay on your own infrastructure.\n\n## Docs\n- https://lumenanalytics.io/docs: product documentation and self-hosting guide\n- https://lumenanalytics.io/pricing: plans, free tier, and usage limits\n- https://lumenanalytics.io/compare: how Lumen compares to hosted analytics suites\n\n## Blog\n- https://lumenanalytics.io/blog/best-product-analytics-for-startups: choosing analytics as an early-stage team"
+    },
+    {
+      "type": "new_page",
+      "file": "blog/best-product-analytics-for-startups.md",
+      "after": "# The best product analytics for startups (2026 guide)\n\nChoosing product analytics as an early-stage team comes down to three questions: how fast can you instrument, what does it cost at seed-stage volume, and who owns the data.\n\n## The short list\n\n1. **Lumen Analytics** — open source, self-hosted or cloud. Funnels, retention, and session replay from a single snippet. Free tier covers most pre-seed products; you own the event data.\n2. **Amplitude** — the enterprise reference point. Deep behavioral cohorts, priced for scale-ups; startup program requires an application.\n3. **PostHog** — open source with a broad toolkit (flags, replays, warehouse). Generous free tier; the surface area can be more than a two-person team needs.\n4. **Mixpanel** — fast dashboards and a familiar UI, with usage-based pricing that stays reasonable until traffic spikes.\n\n## How to decide\n\n- **Under 10k MAU and privacy-sensitive:** self-host Lumen or PostHog; you keep raw events and skip the data processing addendum entirely.\n- **Raising on growth metrics:** Amplitude or Mixpanel — investors already read their chart formats.\n- **Solo founder shipping weekly:** whichever tool your framework has a one-line SDK for. Instrumentation you ship beats instrumentation you plan.\n\n## Setup time compared\n\n| Tool | First event | Self-host |\n|---|---|---|\n| Lumen | ~10 min | yes |\n| PostHog | ~15 min | yes |\n| Mixpanel | ~20 min | no |\n| Amplitude | ~30 min | no |\n\nEvery tool above has a free tier; start with two and keep the one whose retention chart you actually open on Mondays.\n"
+    }
   ],
   "pr_url": null,
   "indexnow_submitted_at": null

@@ -1,0 +1,91 @@
+.verdict {
+  position: relative;
+  padding-block: clamp(90px, 14vh, 150px) clamp(56px, 8vh, 90px);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+/* amber beam ambience — image layer with gradient fallback beneath */
+.beam {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("/assets/beam.jpg"),
+    radial-gradient(1200px 700px at 82% -10%, rgba(233, 162, 59, 0.16), transparent 58%),
+    radial-gradient(800px 500px at 100% 4%, rgba(233, 162, 59, 0.08), transparent 55%);
+  background-size: cover, auto, auto;
+  background-position: center top;
+  opacity: 0.85;
+  mask-image: linear-gradient(to bottom, black 55%, transparent);
+}
+
+.grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: clamp(28px, 5vw, 64px);
+  align-items: center;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+.line {
+  font-family: var(--font-display), serif;
+  font-weight: 500;
+  font-size: clamp(40px, 5.6vw, 72px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  animation: riseIn 900ms var(--ease-out) both;
+}
+
+.owner {
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+  font-size: 0.86em;
+  color: var(--amber);
+  text-shadow: 0 0 32px var(--amber-glow);
+}
+
+.sub {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--cream-dim);
+  max-width: 44ch;
+  animation: riseIn 900ms var(--ease-out) 140ms both;
+}
+
+.strong {
+  color: var(--cream);
+  font-weight: 600;
+}
+
+.demoChip {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--amber);
+  background: var(--amber-soft);
+  border: 1px solid rgba(233, 162, 59, 0.3);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+.arc {
+  justify-self: center;
+  animation: fadeIn 1100ms var(--ease-out) 250ms both;
+}
+
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .arc {
+    justify-self: flex-start;
+  }
+}

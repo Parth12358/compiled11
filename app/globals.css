@@ -1,0 +1,174 @@
+/* ————————————————————————————————————————————————
+   CITED — design tokens & global primitives (Part C)
+   Paper world (idle/scan) → Ink world (revealed).
+   ———————————————————————————————————————————————— */
+
+:root {
+  /* color */
+  --paper: #f5f2ea;
+  --paper-2: #ede8dc;
+  --night: #0b101e;
+  --night-2: #111a2e;
+  --ink: #131a2a;
+  --ink-soft: rgba(19, 26, 42, 0.62);
+  --cream: #f2eee3;
+  --cream-dim: rgba(242, 238, 227, 0.55);
+  --cream-faint: rgba(242, 238, 227, 0.28);
+  --amber: #e9a23b;
+  --amber-soft: rgba(233, 162, 59, 0.12);
+  --amber-glow: rgba(233, 162, 59, 0.45);
+  --slate: #5a6478;
+  --slate-soft: rgba(90, 100, 120, 0.28);
+  --add: #2ba793;
+  --add-soft: rgba(43, 167, 147, 0.12);
+  --del: #c4554d;
+  --del-soft: rgba(196, 85, 77, 0.12);
+  --line: rgba(242, 238, 227, 0.08);
+  --line-strong: rgba(242, 238, 227, 0.16);
+  --line-ink: rgba(19, 26, 42, 0.14);
+
+  /* motion */
+  --t-fast: 200ms;
+  --t-med: 500ms;
+  --t-slow: 900ms;
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans), "Helvetica Neue", system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 700ms ease, color 700ms ease;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+body[data-world="ink"] {
+  background: var(--night);
+  color: var(--cream);
+}
+
+::selection {
+  background: var(--amber);
+  color: var(--night);
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* layout primitives */
+.container {
+  width: 100%;
+  max-width: 1140px;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 4vw, 48px);
+}
+
+.section {
+  padding-block: clamp(64px, 9vh, 112px);
+}
+
+/* type primitives */
+.mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 26px;
+  height: 1px;
+  background: var(--amber);
+  flex: none;
+}
+
+/* shared keyframes (referable from CSS modules) */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes riseIn {
+  from { opacity: 0; translate: 0 26px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* dark-world scrollbar */
+body[data-world="ink"]::-webkit-scrollbar {
+  width: 10px;
+}
+body[data-world="ink"]::-webkit-scrollbar-track {
+  background: var(--night);
+}
+body[data-world="ink"]::-webkit-scrollbar-thumb {
+  background: var(--night-2);
+  border-radius: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}

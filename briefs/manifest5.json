@@ -1,0 +1,5 @@
+{"integration_branch":"takeover","base_branch":"takeover",
+ "tasks":[
+  {"id":"classify","brief":"classify.md","files":["src/act/classify.ts"],"deps":[]},
+  {"id":"useclassify","brief":"useclassify.md","files":["src/act/outreach.ts"],"deps":[]}
+ ]}

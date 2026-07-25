@@ -1,5 +1,6 @@
 // Aggregate engine results into a source leaderboard + visibility score.
 import { EngineResult, RetrieveOutput, SourceStats } from "./types";
+import { QueryResult } from "../contract";
 
 const MAX_SOURCES = 20;
 
@@ -42,15 +43,40 @@ export function aggregate(results: EngineResult[], clientDomain: string): Retrie
   const domainCounts = new Map<string, number>();
   let citedQueries = 0;
   let totalQueries = 0;
+  const queries: QueryResult[] = [];
 
-  for (const urls of urlsByQuery.values()) {
-    // Distinct domains cited by this query.
+  for (const [query, urls] of urlsByQuery) {
+    const seenUrls = new Set<string>();
+    const cited_urls: string[] = [];
+    for (const u of urls) {
+      if (!seenUrls.has(u)) {
+        seenUrls.add(u);
+        cited_urls.push(u);
+      }
+    }
+    const citedDomainsMap = new Map<string, true>();
+    const cited_domains: string[] = [];
+    for (const u of cited_urls) {
+      const d = extractDomain(u);
+      if (!citedDomainsMap.has(d)) {
+        citedDomainsMap.set(d, true);
+        cited_domains.push(d);
+      }
+    }
+    queries.push({
+      query,
+      cited_urls,
+      cited_domains,
+      client_cited: citedDomainsMap.has(client),
+      citation_count: cited_urls.length,
+    });
+
     const domains = new Set<string>();
     for (const u of urls) {
       const d = urlToDomain(u);
       if (d) domains.add(d);
     }
-    if (domains.size === 0) continue; // query returned nothing usable
+    if (domains.size === 0) continue;
 
     totalQueries++;
     for (const d of domains) {
@@ -73,6 +99,7 @@ export function aggregate(results: EngineResult[], clientDomain: string): Retrie
   return {
     score: { visibility, cited_queries: citedQueries, total_queries: totalQueries },
     sources,
+    queries,
   };
 }
 

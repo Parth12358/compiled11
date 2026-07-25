@@ -10,6 +10,7 @@ import { aggregate, extractDomain } from "./aggregate";
 const EMPTY: RetrieveOutput = {
   score: { visibility: 0, cited_queries: 0, total_queries: 0 },
   sources: [],
+  queries: [],
 };
 
 /**

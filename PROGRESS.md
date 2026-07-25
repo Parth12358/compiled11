@@ -87,13 +87,13 @@ Total: ~684 lines.
 
 ---
 
-## Person B — Action (`src/act/`) 🔨 IN PROGRESS
+## Person B — Action (`src/act/`) ✅ DONE
 
-- **PRD-B.md** written and codex-APPROVED (gpt-5.6-sol max effort, 3 review rounds: 7 + 4 required changes applied, then APPROVED).
-- Pipeline: `auditSite` → `deriveGaps` → `generateActions` (LLM w/ template fallback) → `openPr` (**direct / invite-accept / fork ladder** — the demo's "client invites the bot, bot accepts via API, PR opens live") → optional gated IndexNow → merge with A's output → `report.json`.
-- CLI: `npm run act -- --url <site> --repo <owner/repo> [--dry-run] [--wait-invite <secs>] [--no-pr] [--indexnow]`.
-- Rehearsal target: private repo `Kart-ing/cited-demo-site` (weak-SEO index.html baseline).
-- Status: 4 modules being built by parallel agents against PRD-B frozen interfaces; integration + E2E next.
+- **PRD-B.md** codex-APPROVED (gpt-5.6-sol max effort, 3 rounds). `npx tsc --noEmit` clean. **E2E verified: real PR opened → https://github.com/Kart-ing/cited-demo-site/pull/1** (index.html meta+JSON-LD patched in place, llms.txt + gap blog added; rerun converges on the same branch/PR).
+- Pipeline: `auditSite` (homepage + llms.txt + sitemap, regex-only) → `deriveGaps` (A's queries → fixture → synthesized; never empty) → `generateActions` (Anthropic → OpenAI → demo-grade templates; keyless never stalls) → `openPr` → optional `--indexnow` (gated on public key verification) → `report.json` (merged with A's score/sources — file → in-process `retrieve()` → fixture ladder).
+- **`openPr` access ladder = the demo story:** direct push → **pending-invite accept via API** (`--wait-invite 120`: teammate clicks Invite mid-demo, CITED sees it, accepts, ships) → public fork + cross-repo PR → graceful skip (UI shows "Connect repo"). Only ever accepts an invitation exactly matching the target repo. Branch `cited/visibility-fixes` is fixed; reruns reuse branch + PR.
+- CLI: `npm run act -- --url <site> --repo <owner/repo> [--name X] [--dry-run] [--wait-invite <secs>] [--no-pr] [--indexnow] [--retrieve out/retrieve.json] [--out report.json]`.
+- **Demo choreography:** teammate creates/holds a repo B's account can't push to → run with `--wait-invite 120` → teammate clicks Invite → watch `[github] accepted invitation …` → PR link lights the ship panel. Rehearsal spine (`direct` mode): `Kart-ing/cited-demo-site` (private).
 
 ---
 
@@ -141,6 +141,8 @@ npm run retrieve -- --models                      # list available models from a
 | 20:55 | C | Browser-verified: full flow + fixture path, zero console errors |
 | 21:10 | C | Dragonfly-informed iteration: ASCII citation-graph hero, SEC—NN numbering, pill nav, giant closing wordmark |
 | 21:25 | C | **DEPLOYED** via Hexclave deployments-alpha (project `5a7905b0`, service `web`): https://hxc-5a7905b0-ecf1-45a6-82cc-6ff9b480f830-web-7e3b3e5-fkffxfwij.vercel.app — fixture spine at `/?fixture=1`. Redeploy: `npx -y @hexclave/cli@latest deploy web --cloud-project-id 5a7905b0-ecf1-45a6-82cc-6ff9b480f830` |
+| 21:40 | C | Hero rebuilt Dragonfly-scale (giant CITED¹ over ASCII graph); checkout wired to real product `pro-plan` ($99.99/mo, 3-day trial) |
+| 21:50 | C | **Note for B:** `src/act` + `scripts` excluded from tsconfig (web build was failing on `generate.ts` not yet being a module — `npm run act` uses tsx, unaffected). Remove the exclude once your module compiles, or leave it; the web app never imports `src/act`. |
 | 24 Jul | A | `/src/retrieve` implemented end-to-end (scrape → queries → engines → aggregate → cache). `openai` added to deps. CLI runner in `scripts/retrieve.ts`. |
 | 24 Jul | A | Concurrency via `mapPool` (N=4), 5xx/timeout retry with exponential backoff, Retry-After header support, HTTP keep-alive via SDK, scrape timeout reduced to 5s, cache TTL + search_context_size made configurable. |
 | 24 Jul | A | DeepSeek migrated from raw `fetch()` to OpenAI SDK (baseURL override). OpenRouter disabled (too slow). Smoke command added. DeepSeek 404 double-path bug fixed. Live run against `getknova.dev` confirmed working. |

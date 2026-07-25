@@ -141,7 +141,7 @@ That's a product decision, not a limitation. Astroturfing gets suppressed by the
 
 ## Stack
 
-TypeScript · Next.js · OpenAI API (retrieval, web_search) · OpenRouter API (retrieval, `:online`) · Anthropic API (generation, coming soon) · GitHub API (PRs) · Hexclave (auth, coming soon)
+TypeScript · Next.js · OpenAI API (retrieval, web_search + chat completions) · DeepSeek API (via OpenAI SDK) · Anthropic API (generation, coming soon) · GitHub API (PRs) · Hexclave (auth, coming soon)
 
 ## License
 

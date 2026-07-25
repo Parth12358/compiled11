@@ -10,12 +10,12 @@ interface HeroProps {
 
 // Print registration marks pinning the frame at grid points.
 const CROSSES: Array<{ top: string; left: string }> = [
-  { top: "10%", left: "28%" },
-  { top: "8%", left: "72%" },
-  { top: "38%", left: "94%" },
-  { top: "62%", left: "4%" },
-  { top: "88%", left: "60%" },
-  { top: "80%", left: "90%" },
+  { top: "12%", left: "12%" },
+  { top: "9%", left: "86%" },
+  { top: "40%", left: "95%" },
+  { top: "56%", left: "4%" },
+  { top: "88%", left: "22%" },
+  { top: "84%", left: "78%" },
 ];
 
 function normalizeSite(raw: string): string | null {
@@ -63,25 +63,37 @@ export function Hero({ onRun }: HeroProps) {
         ))}
       </div>
 
+      <span className={`${styles.corner} ${styles.cornerTL}`} aria-hidden="true">
+        ¹
+      </span>
+      <span className={`${styles.corner} ${styles.cornerTR}`} aria-hidden="true">
+        ²
+      </span>
+      <span className={`${styles.corner} ${styles.cornerBL}`} aria-hidden="true">
+        ³
+      </span>
+      <span className={`${styles.corner} ${styles.cornerBR}`} aria-hidden="true">
+        ⁴
+      </span>
+
       <header className={styles.topbar}>
-        <span className={styles.wordmark}>
-          CITED<sup className={styles.wordmarkSup}>1</sup>
-        </span>
+        <span className={`${styles.tag} mono`}>the machine&apos;s reading room</span>
         <span className={`${styles.tag} mono`}>c0mpiled startup school · 24 jul 2026</span>
       </header>
 
       <div className={`container ${styles.center}`}>
-        <h1 className={styles.headline}>
-          <span className={styles.lineOne}>You rank on Google.</span>
-          <span className={styles.lineTwo}>
-            That&apos;s not where <mark className={styles.hl}>buyers ask</mark>.
-          </span>
+        <h1 className={styles.giant}>
+          CITED<sup className={styles.giantSup}>1</sup>
         </h1>
+
+        <p className={styles.hook}>
+          You rank on Google. That&apos;s not where <mark className={styles.hl}>buyers ask</mark>.
+        </p>
 
         <p className={styles.lede}>
           80% of the URLs AI answer engines cite don&apos;t rank in Google&apos;s top 100
-          <sup className={styles.sup}>1</sup>. CITED finds who owns your category inside the
-          answers — and opens the pull request that fixes it.
+          <sup className={styles.sup}>1</sup> — CITED finds who owns your category inside the
+          answers, and opens the pull request that fixes it.
         </p>
 
         <form className={styles.card} onSubmit={submit} noValidate>
@@ -126,9 +138,7 @@ export function Hero({ onRun }: HeroProps) {
       </div>
 
       <footer className={`${styles.foot} mono`}>
-        <span>
-          1&nbsp;&nbsp;citation-analysis data, 2026 — via campaigncreators
-        </span>
+        <span>1&nbsp;&nbsp;citation-analysis data, 2026 — via campaigncreators</span>
       </footer>
     </div>
   );

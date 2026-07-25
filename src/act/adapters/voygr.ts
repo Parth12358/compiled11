@@ -1,4 +1,4 @@
-import type { VoygrAdapter, VoygrCallResult, TranscriptTurn } from "../../contract.js";
+import type { VoygrAdapter, VoygrCallResult, TranscriptTurn } from "../../contract";
 
 const BASE = "https://api.voygr.tech";
 

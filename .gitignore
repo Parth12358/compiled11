@@ -1,9 +1,9 @@
 node_modules/
-dist/
+.next/
 .env
-.env.local
+cache/
+dist/
 *.log
 .DS_Store
 .worktrees/
 .claude/.github-coordination.json
-/tmp/

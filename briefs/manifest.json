@@ -1,0 +1,42 @@
+{
+  "integration_branch": "takeover",
+  "base_branch": "takeover",
+  "tasks": [
+    {
+      "id": "crustdata",
+      "brief": "briefs/crustdata.md",
+      "files": ["src/act/adapters/crustdata.ts"],
+      "deps": []
+    },
+    {
+      "id": "outreach",
+      "brief": "briefs/outreach.md",
+      "files": ["src/act/outreach.ts"],
+      "deps": []
+    },
+    {
+      "id": "call",
+      "brief": "briefs/call.md",
+      "files": ["src/act/call.ts"],
+      "deps": []
+    },
+    {
+      "id": "generate",
+      "brief": "briefs/generate.md",
+      "files": ["src/act/generate.ts"],
+      "deps": []
+    },
+    {
+      "id": "pr",
+      "brief": "briefs/pr.md",
+      "files": ["src/act/pr.ts"],
+      "deps": []
+    },
+    {
+      "id": "orchestrate",
+      "brief": "briefs/orchestrate.md",
+      "files": ["src/act/index.ts", "scripts/act.ts"],
+      "deps": ["crustdata", "outreach", "call", "generate", "pr"]
+    }
+  ]
+}

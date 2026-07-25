@@ -1,7 +1,6 @@
 import * as cheerio from "cheerio";
-import type { OutreachTarget, QueryResult, Source, AuditResult, Client, CrustCompany } from "../contract";
-import { crustdata } from "./adapters/crustdata";
-import { firecrawlEnabled, scrapeHtml } from "./adapters/firecrawl";
+import type { OutreachTarget, QueryResult, Source, AuditResult, Client } from "../contract";
+
 
 export const NEVER_CALL: string[] = [
   "reddit.com",
@@ -203,12 +202,35 @@ function regexPhoneFromHtml($: cheerio.CheerioAPI): string | null {
   $("script, style").remove();
   const body = $("body").text() || "";
   const lines = body.split("\n");
-  const joined = lines.join(" ");
-  const m = NA_PHONE_RE.exec(joined);
-  if (!m) return null;
-  const digits = `${m[1]}${m[2]}${m[3]}`;
-  if (isObviousNonPhone(digits)) return null;
-  return digits;
+  const collapsed = lines.join(" ").replace(/\s+/g, " ").trim();
+
+  const re = new RegExp(NA_PHONE_RE.source, "g");
+  let m;
+  while ((m = re.exec(collapsed)) !== null) {
+    const matchStart = m.index;
+    const matchEnd = matchStart + m[0].length;
+
+    if (
+      matchStart > 0 && /[\d.\-]/.test(collapsed[matchStart - 1])
+    ) {
+      continue;
+    }
+    if (matchEnd < collapsed.length && /[\d.\-]/.test(collapsed[matchEnd])) {
+      continue;
+    }
+
+    const before = collapsed.slice(Math.max(0, matchStart - 60), matchStart).toLowerCase();
+    const kw = /phone|tel(?:ephone)?|call us|call:|contact|toll|office|mobile|cell|fax/i;
+    const kwMatch = before.match(kw);
+    if (!kwMatch) continue;
+    if (/^fax$/i.test(kwMatch[0])) continue;
+
+    const digits = `${m[1]}${m[2]}${m[3]}`;
+    if (isObviousNonPhone(digits)) continue;
+    return digits;
+  }
+
+  return null;
 }
 
 function findTelephoneIn(obj: unknown): string | null {
@@ -282,18 +304,6 @@ export async function findPhone(domain: string): Promise<string | null> {
     if (!html) continue;
     const phone = tryExtractPhone(html);
     if (phone) return phone;
-  }
-
-  if (firecrawlEnabled()) {
-    try {
-      const html = await scrapeHtml("https://" + domain);
-      if (html) {
-        const phone = tryExtractPhone(html);
-        if (phone) return phone;
-      }
-    } catch {
-      /* never throw */
-    }
   }
 
   return null;
@@ -406,52 +416,8 @@ export async function discoverTargets(input: {
 
   const results = await Promise.all(
     top.map(async (c): Promise<OutreachTarget | null> => {
-      let company: CrustCompany | null = null;
-      let name = c.domain;
-      let companyId: number | null = null;
-
-      const [crustResult, identityResult] = await Promise.all([
-        crustdata.enrichDomain(c.domain).catch(() => null),
-        fetchOrgIdentity(c.domain).catch(() => ({ name: null, title: null })),
-      ]);
-
-      company = crustResult;
-
-      if (company) {
-        name = company.name || name;
-        companyId = company.company_id ?? null;
-      } else {
-        name = identityResult.name ?? c.domain;
-      }
-
-      let contactPerson: string | null = null;
-      let contactTitle: string | null = null;
-
-      if (company) {
-        try {
-          const contacts = await crustdata.findContacts(company, {
-            titles: [
-              "membership",
-              "partnership",
-              "director",
-              "editor",
-              "content",
-              "marketing",
-              "communications",
-              "outreach",
-              "owner",
-              "president",
-            ],
-            limit: 3,
-          });
-          if (contacts.length > 0) {
-            contactPerson = contacts[0].name ?? null;
-            contactTitle = contacts[0].title ?? null;
-          }
-        } catch {
-          /* leave null */
-        }
-      }
+      const identityResult = await fetchOrgIdentity(c.domain).catch(() => ({ name: null, title: null }));
+      const name = identityResult.name ?? c.domain;
 
       let phone: string | null = null;
       try {
@@ -475,11 +441,10 @@ export async function discoverTargets(input: {
         domain: c.domain,
         phone,
         category,
-        contact_person: contactPerson,
-        contact_title: contactTitle,
+        contact_person: null,
+        contact_title: null,
         why_relevant: whyRelevant,
         cited_by_engine: true,
-        crustdata_company_id: companyId,
       };
     }),
   );

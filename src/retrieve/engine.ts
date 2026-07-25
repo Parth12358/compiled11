@@ -10,7 +10,8 @@ import { EngineResult } from "./types";
 import { getCache, setCache } from "./cache";
 
 const OPENAI_MODEL = "gpt-5.6";
-const OPENROUTER_MODEL = "openai/gpt-5.2:online";
+// :online models do not exist on OpenRouter; Sonar returns citations natively.
+const OPENROUTER_MODEL = "perplexity/sonar";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const QUERY_TIMEOUT_MS = 15000;
 const MAX_RETRIES = 2;
@@ -143,11 +144,14 @@ function extractOpenAICitations(response: any): string[] {
 
 function extractOpenRouterCitations(data: any): string[] {
   const urls: string[] = [];
-  for (const ann of data?.choices?.[0]?.message?.annotations ?? []) {
-    if (ann?.type === "url_citation") {
-      const url = ann?.url_citation?.url ?? ann?.url;
-      if (url) urls.push(url);
+  if (Array.isArray(data?.citations)) {
+    for (const c of data.citations) {
+      if (typeof c === "string" && c) urls.push(c);
     }
+  }
+  for (const ann of data?.choices?.[0]?.message?.annotations ?? []) {
+    const url = ann?.url_citation?.url ?? ann?.url;
+    if (typeof url === "string" && url) urls.push(url);
   }
   return urls;
 }

@@ -6,7 +6,7 @@ export interface Citation {
   title?: string;
 }
 
-export type EngineName = "openai" | "openrouter";
+export type EngineName = "openai" | "openrouter" | "deepseek";
 
 export interface EngineResult {
   query: string;

@@ -8,6 +8,16 @@ Built at [c0mpiled Startup School Hackathon](https://lu.ma/), 24 July 2026 · Tr
 
 ---
 
+## Current Status
+
+| Module | Status |
+|--------|--------|
+| **Retrieval** (`src/retrieve/`) — queries, citation capture, aggregation | ✅ Done |
+| **Action** (`src/act/`) — audit, gap diff, content generation, PR | ⬜ Not started |
+| **Interface** (`src/ui/`) — dashboard, diff viewer, demo surface | ⬜ Not started |
+
+---
+
 ## Why
 
 Roughly **80% of the URLs cited by AI answer engines don't rank in Google's top 100** for the same query. Only about 12% appear in Google's top 10. (2026 citation-analysis data via campaigncreators.)
@@ -24,7 +34,7 @@ The monitoring category is crowded and well funded. Every one of those tools sto
 ```
 site URL + repo URL
         │
-        ├─▶ run N category queries against an answer engine
+        ├─▶ run N category queries against AI answer engines
         ├─▶ capture cited URLs, aggregate by domain
         ├─▶ score visibility (cited_queries / total_queries)
         ├─▶ diff client content against gap keywords
@@ -32,43 +42,68 @@ site URL + repo URL
         └─▶ open PR  →  dashboard
 ```
 
+## Architecture
+
+```
+/
+  src/
+    retrieve/
+      index.ts          orchestrator (scrape → queries → engines → aggregate)
+      types.ts           shared interfaces
+      scrape.ts          homepage scraper (title, meta, OG tags)
+      queries.ts         25-30 query templates
+      engine.ts          OpenAI + OpenRouter + DeepSeek adapters
+      aggregate.ts       domain grouping, score computation
+      cache.ts           file-based response cache (1h TTL)
+    act/
+      audit.ts           crawl client site (NOT IMPLEMENTED)
+      gaps.ts            diff content vs gap keywords (NOT IMPLEMENTED)
+      generate.ts        LLM-generated fixes (NOT IMPLEMENTED)
+      pr.ts              GitHub PR creation (NOT IMPLEMENTED)
+      index.ts           action orchestrator (NOT IMPLEMENTED)
+    ui/
+      dashboard.tsx      full demo surface (NOT IMPLEMENTED)
+      index.ts           component exports (NOT IMPLEMENTED)
+  scripts/
+    retrieve.ts          CLI test runner for retrieval
+  fixture.json           data contract — shared across all modules
+  cache/                 13 cached API responses (gitignored)
+```
+
+Three modules, one JSON contract between them. Each is independently runnable.
+
 ## Quickstart
 
 ```bash
 git clone <repo> && cd cited
 npm install
 cp .env.example .env      # add your keys
-npm run dev               # → http://localhost:3000
+```
+
+### Run retrieval from CLI
+
+```bash
+npm run retrieve -- https://example.com     # full pipeline, prints JSON
+npm run retrieve -- --models                # list available models
+```
+
+### Run the dashboard (coming soon)
+
+```bash
+npm run dev               # → http://localhost:3000 (once UI is built)
 ```
 
 ### Environment
 
 ```
-PERPLEXITY_API_KEY=      # citation retrieval
-ANTHROPIC_API_KEY=       # content + metadata generation
-GITHUB_TOKEN=            # PR creation (optional)
-INDEXNOW_KEY=            # optional, accelerates Bing/ChatGPT discovery
+OPENAI_API_KEY=           # primary retrieval engine (Responses API with web_search)
+OPENROUTER_API_KEY=       # fallback retrieval engine (:online model suffix)
+DEEPSEEK_API_KEY=         # last-resort engine (no native web search — regex URL extraction)
+GITHUB_TOKEN=             # PR creation (Person B)
+INDEXNOW_KEY=             # optional, accelerates Bing/ChatGPT discovery
 ```
 
-### Demo mode (no keys, no network)
-
-```bash
-npm run dev -- --fixture
-```
-
-Reads `fixture.json` and renders the full dashboard. Use this if the venue wifi dies. **It will.**
-
-## Architecture
-
-```
-/src
-  /retrieve    queries.ts, engine.ts, aggregate.ts     → score, sources
-  /act         audit.ts, gaps.ts, generate.ts, pr.ts   → gaps, actions, pr_url
-  /ui          dashboard, source table, diff viewer
-fixture.json   the contract — see below
-```
-
-Three modules, one JSON contract between them. Each is independently runnable.
+**Note:** The retrieval module works with any subset of keys. Missing keys → that engine is silently skipped. If all retrieval keys are absent, the pipeline returns a zeroed result.
 
 ## The contract
 
@@ -86,7 +121,7 @@ Everything flows through one object. Build against it from minute zero.
 }
 ```
 
-`--fixture` renders this exact shape. If your module emits it, it works.
+If your module emits it, it works. The `retrieve()` function returns `{ score, sources }` matching this contract.
 
 ## Team
 
@@ -104,18 +139,9 @@ That's a product decision, not a limitation. Astroturfing gets suppressed by the
 
 **We don't claim instant results.** Bing indexing runs hours to a day even with IndexNow; Perplexity's index is faster but not guaranteed. CITED submits immediately and timestamps it. What it promises is the diagnosis and the fix, not a stopwatch.
 
-## Roadmap
-
-- [ ] Multi-engine coverage + overlap analysis
-- [ ] Scheduled re-runs with score deltas
-- [ ] Outreach drafts for third-party gaps
-- [ ] Category retrieval graph — which domains control which verticals, across clients
-
-That last one is the actual company. The service wins the first customers; the graph compounds.
-
 ## Stack
 
-TypeScript · Next.js · Perplexity API (retrieval) · Anthropic API (generation) · GitHub API (PRs) · Hexclave (auth)
+TypeScript · Next.js · OpenAI API (retrieval, web_search) · OpenRouter API (retrieval, `:online`) · Anthropic API (generation, coming soon) · GitHub API (PRs) · Hexclave (auth, coming soon)
 
 ## License
 

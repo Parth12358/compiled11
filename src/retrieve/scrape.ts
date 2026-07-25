@@ -6,7 +6,9 @@ export interface ScrapeResult {
   keywords: string[];
 }
 
-const FETCH_TIMEOUT_MS = 10000;
+// On cached runs the homepage scrape is the only network call, so it sets the
+// floor latency for every run. 5s is plenty for a live site; override if needed.
+const FETCH_TIMEOUT_MS = parseInt(process.env.SCRAPE_TIMEOUT || "5000", 10);
 
 /**
  * Scrape the homepage for <title>, meta description, meta keywords and OG tags,

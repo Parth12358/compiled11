@@ -6,7 +6,8 @@ import path from "path";
 import crypto from "crypto";
 
 const CACHE_DIR = path.join(process.cwd(), "cache");
-const MAX_AGE_MS = 60 * 60 * 1000;
+// Default 1h TTL; override (e.g. for a long demo prep window) via env.
+const MAX_AGE_MS = parseInt(process.env.RETRIEVE_CACHE_TTL || "3600000", 10);
 
 function keyToFile(key: string): string {
   const safe = key.replace(/[^a-z0-9]+/gi, "_").slice(0, 100);

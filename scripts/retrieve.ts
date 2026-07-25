@@ -38,6 +38,23 @@ async function listModels() {
     console.log("OPENAI_API_KEY not set — skipping OpenAI model list.");
   }
 
+  const deepseek = process.env.DEEPSEEK_API_KEY;
+  if (deepseek) {
+    try {
+      const res = await fetch("https://api.deepseek.com/models", {
+        headers: { Authorization: `Bearer ${deepseek}` },
+      });
+      const data: any = await res.json();
+      const ids = (data?.data ?? []).map((m: any) => m.id).sort();
+      console.log(`\nDeepSeek models (${ids.length}):`);
+      console.log(ids.join("\n"));
+    } catch (e) {
+      console.error("DeepSeek model list failed:", e);
+    }
+  } else {
+    console.log("DEEPSEEK_API_KEY not set — skipping DeepSeek model list.");
+  }
+
   try {
     const res = await fetch("https://openrouter.ai/api/v1/models");
     const data: any = await res.json();
@@ -52,23 +69,66 @@ async function listModels() {
   }
 }
 
+/** One fresh query per engine — validates model IDs, auth, and web search cheaply. */
+async function smoke(query: string) {
+  process.env.RETRIEVE_NO_CACHE = "1"; // always hit the real API
+  process.env.RETRIEVE_VERBOSE = "0"; // we print our own summary
+  const { runOpenAI, runOpenRouter, runDeepSeek, CONCURRENCY, QUERY_TIMEOUT_MS } = await import(
+    "../src/retrieve/engine"
+  );
+
+  const engines: Array<[string, boolean, (qs: string[]) => Promise<any[]>]> = [
+    ["openai", !!process.env.OPENAI_API_KEY, runOpenAI],
+    ["openrouter", !!process.env.OPENROUTER_API_KEY, runOpenRouter],
+    ["deepseek", !!process.env.DEEPSEEK_API_KEY, runDeepSeek],
+  ];
+
+  console.error(`smoke query: "${query}"\n`);
+  for (const [name, hasKey, fn] of engines) {
+    if (!hasKey) {
+      console.log(`${name.padEnd(11)} SKIP (no key)`);
+      continue;
+    }
+    const t = Date.now();
+    try {
+      const res = await fn([query]);
+      const urls: string[] = res[0]?.urls ?? [];
+      const secs = ((Date.now() - t) / 1000).toFixed(1);
+      console.log(`${name.padEnd(11)} ${urls.length ? "OK  " : "EMPTY"} ${urls.length} urls  ${secs}s`);
+      if (process.env.RETRIEVE_DEBUG) {
+        console.log(`             → concurrency=${CONCURRENCY}, timeout=${QUERY_TIMEOUT_MS}ms`);
+      }
+      urls.slice(0, 5).forEach((u) => console.log(`             ${u}`));
+    } catch (e: any) {
+      console.log(`${name.padEnd(11)} ERROR  ${e?.status ?? ""} ${e?.message ?? e}`);
+    }
+  }
+}
+
 async function main() {
   await loadEnv();
-  process.env.RETRIEVE_DEBUG = process.env.RETRIEVE_DEBUG ?? "1";
 
   const arg = process.argv[2];
   if (!arg) {
-    console.error("usage: npm run retrieve -- <url> | --models");
+    console.error("usage: npm run retrieve -- <url> | --models | --smoke [query]");
     process.exit(1);
   }
   if (arg === "--models") {
     await listModels();
     return;
   }
+  if (arg === "--smoke") {
+    await smoke(process.argv[3] || "best car detailing app");
+    return;
+  }
+
+  process.env.RETRIEVE_VERBOSE = process.env.RETRIEVE_VERBOSE ?? "1";
+  process.env.RETRIEVE_DEBUG = process.env.RETRIEVE_DEBUG ?? "1";
 
   console.error(
     `keys: OPENAI=${process.env.OPENAI_API_KEY ? "set" : "MISSING"} ` +
-      `OPENROUTER=${process.env.OPENROUTER_API_KEY ? "set" : "MISSING"}`
+      `OPENROUTER=${process.env.OPENROUTER_API_KEY ? "set" : "MISSING"} ` +
+      `DEEPSEEK=${process.env.DEEPSEEK_API_KEY ? "set" : "MISSING"}`
   );
 
   const { retrieve } = await import("../src/retrieve/index");

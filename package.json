@@ -1,0 +1,23 @@
+{
+  "name": "cited-act",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CITED — Part B (/act): audit, gaps, generation, PR, and Voygr+CrustData backlink outreach.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "demo": "tsx src/act/demo.ts",
+    "act": "tsx src/act/demo.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@octokit/rest": "^22.0.1",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  }
+}

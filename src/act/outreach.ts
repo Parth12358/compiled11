@@ -352,6 +352,48 @@ interface Candidate {
   bestQuery: string;
 }
 
+/**
+ * Detect when a target looks like another business in the client's own line of
+ * work (a competitor), independent of category classification.  Calling a
+ * rival and asking for a link is nonsense — drop these targets.
+ */
+export function isLikelyCompetitor(
+  domain: string,
+  title: string | null,
+  clientCategoryHint: string | null,
+  clientName: string,
+): boolean {
+  const raw = `${clientCategoryHint ?? ""} ${clientName}`.toLowerCase();
+  const tokens = raw.split(/[^a-z0-9]+/).filter((t) => t.length >= 4);
+  const generic = new Set([
+    "the", "and", "pros", "pro", "services", "service", "company", "inc",
+    "llc", "best", "near",
+  ]);
+  const serviceWords = tokens.filter((t) => !generic.has(t));
+  if (serviceWords.length === 0) return false;
+
+  const reg = registrableDomain(domain).toLowerCase();
+  for (const w of serviceWords) {
+    if (reg.includes(w)) return true;
+  }
+
+  if (title) {
+    const t = title.toLowerCase();
+    const directoryIndicators = [
+      "directory", "find a", "compare", "reviews of", "top 10", "best of",
+      "chamber", "association", "marketplace", "quotes", "contractors near",
+    ];
+    const isDirectory = directoryIndicators.some((d) => t.includes(d));
+    if (!isDirectory) {
+      for (const w of serviceWords) {
+        if (t.includes(w)) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 export async function discoverTargets(input: {
   client: Client;
   queries: QueryResult[];
@@ -379,6 +421,7 @@ export async function discoverTargets(input: {
     }),
   );
 
+  // (a) build and score all candidate domains
   const candMap = new Map<string, { score: number; bestQuery: string; bestCount: number }>();
 
   for (const q of queries) {
@@ -398,6 +441,7 @@ export async function discoverTargets(input: {
     }
   }
 
+  // (b) apply client-domain / NEVER_CALL drops
   const candidates: Candidate[] = [];
   for (const [domain, data] of candMap) {
     if (domain === clientHost) continue;
@@ -412,46 +456,81 @@ export async function discoverTargets(input: {
   }
 
   candidates.sort((a, b) => b.score - a.score || a.domain.localeCompare(b.domain));
-  const top = candidates.slice(0, limit ?? 5);
 
-  const results = await Promise.all(
-    top.map(async (c): Promise<OutreachTarget | null> => {
+  // (c) take top 20 as working pool — wide enough to survive filters below
+  const pool = candidates.slice(0, 20);
+
+  // (d) resolve identity + category in parallel
+  const identityResults = await Promise.all(
+    pool.map(async (c) => {
       const identityResult = await fetchOrgIdentity(c.domain).catch(() => ({ name: null, title: null }));
       const name = identityResult.name ?? c.domain;
+      const category = classifyDomain(c.domain, identityResult.title);
+      return { candidate: c, name, category, title: identityResult.title };
+    }),
+  );
 
+  // (e) drop "other" (competing businesses) and explicit competitors
+  const linkableTargets = identityResults.filter((r) => {
+    if (r.category === "other") return false;
+    if (isLikelyCompetitor(r.candidate.domain, r.title, audit.category_hint, client.name)) return false;
+    return true;
+  });
+
+  // (f) resolve phones in parallel for survivors, drop the ones with no phone
+  const withPhones = await Promise.all(
+    linkableTargets.map(async (r) => {
       let phone: string | null = null;
       try {
-        phone = await findPhone(c.domain);
+        phone = await findPhone(r.candidate.domain);
       } catch {
         /* leave null */
       }
       if (phone === null) return null;
 
-      const category = classifyDomain(c.domain, identityResult.title);
-
-      let whyRelevant: string;
-      if (c.score === 1) {
-        whyRelevant = `Cited for "${c.bestQuery}" where ${client.name} does not appear.`;
-      } else {
-        whyRelevant = `Cited for "${c.bestQuery}" and ${c.score - 1} other quer${c.score - 1 === 1 ? "y" : "ies"} where ${client.name} does not appear.`;
-      }
+      const c = r.candidate;
+      const whyRelevant =
+        c.score === 1
+          ? `Cited for "${c.bestQuery}" where ${client.name} does not appear.`
+          : `Cited for "${c.bestQuery}" and ${c.score - 1} other quer${c.score - 1 === 1 ? "y" : "ies"} where ${client.name} does not appear.`;
 
       return {
-        name,
+        name: r.name,
         domain: c.domain,
         phone,
-        category,
+        category: r.category,
         contact_person: null,
         contact_title: null,
         why_relevant: whyRelevant,
         cited_by_engine: true,
+        _score: c.score,
       };
     }),
   );
 
-  const valid = results.filter((r): r is OutreachTarget => r !== null);
+  const valid = withPhones.filter((r): r is NonNullable<typeof r> => r !== null);
 
-  return valid;
+  // (g) sort by category weight desc, then score desc, then domain alpha
+  const CATEGORY_WEIGHT: Record<OutreachTarget["category"], number> = {
+    chamber: 3,
+    association: 3,
+    directory: 3,
+    listicle: 2,
+    blog: 1,
+    other: 0,
+  };
+
+  valid.sort((a, b) => {
+    const wa = CATEGORY_WEIGHT[a.category];
+    const wb = CATEGORY_WEIGHT[b.category];
+    if (wa !== wb) return wb - wa;
+    if (a._score !== b._score) return b._score - a._score;
+    return (a.domain ?? "").localeCompare(b.domain ?? "");
+  });
+
+  const result: OutreachTarget[] = valid.slice(0, limit ?? 5).map(({ _score, ...t }) => t);
+
+  return result;
 }
 
 // ---------------------------------------------------------------------------

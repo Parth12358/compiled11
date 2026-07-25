@@ -1,11 +1,3 @@
-// CLI runner for the act module.
-//   npm run act -- https://yoursite.com    → retrieve → audit → gaps → generate → report
-//
-// Outputs:
-//   1. Keyword gaps (list of terms the site should target)
-//   2. Updated metadata (title + description) — saved to ./cited-metadata.txt
-//   3. Optional: llms.txt and robots.txt if generated
-
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -19,104 +11,127 @@ async function loadEnv() {
       if (val && !process.env[m[1]]) process.env[m[1]] = val;
     }
   } catch {
-    // no .env
+    // no .env — rely on shell env
   }
+}
+
+function parseArgs(argv: string[]) {
+  const positional: string[] = [];
+  const flags: Record<string, string | boolean> = {};
+  for (let i = 2; i < argv.length; i++) {
+    if (argv[i].startsWith("--")) {
+      const key = argv[i].slice(2);
+      if (
+        key === "repo" ||
+        key === "queries"
+      ) {
+        flags[key] = argv[++i] ?? "";
+      } else {
+        flags[key] = true;
+      }
+    } else {
+      positional.push(argv[i]);
+    }
+  }
+  return { positional, flags };
 }
 
 async function main() {
   await loadEnv();
 
-  const arg = process.argv[2];
-  if (!arg) {
-    console.error("usage: npm run act -- <url>");
-    console.error("  url  client site URL");
+  const { positional, flags } = parseArgs(process.argv);
+  const url = positional[0];
+
+  if (!url) {
+    console.error(
+      "usage: npm run act -- <site-url> [--repo owner/name] [--fixture] [--live-call] [--live-pr] [--live-indexnow] [--live-all] [--queries <path.json>]",
+    );
     process.exit(1);
   }
 
-  process.env.RETRIEVE_VERBOSE = "0";
-  process.env.RETRIEVE_DEBUG = "0";
+  const hostname = new URL(url).hostname;
+  const clientName = hostname
+    .replace(/^www\./, "")
+    .replace(/\.[^.]+$/, "");
+  const clientRepo =
+    typeof flags.repo === "string" ? flags.repo : "";
 
-  console.error(`\n≡ CITED — AI visibility report for ${arg}\n`);
+  let queries: unknown[] = [];
+  let sources: unknown[] = [];
 
-  const t0 = Date.now();
-
-  // ── Retrieve ──────────────────────────────────────────────
-  console.error("▸ Step 1: Retrieving citations from AI engines...");
-  const { retrieve } = await import("../src/retrieve/index");
-  const { score, sources, queries } = await retrieve(arg);
-
-  console.error(`  Visibility: ${(score.visibility * 100).toFixed(1)}% (${score.cited_queries}/${score.total_queries} queries cite the client)`);
-  if (sources.length) {
-    console.error(`  Domains owning this category:`);
-    for (const s of sources.slice(0, 8)) {
-      console.error(`    ${s.client_present ? "✓" : " "} ${s.domain.padEnd(30)} ${s.citation_count} citations`);
-    }
-  }
-
-  // ── Act ───────────────────────────────────────────────────
-  console.error("\n▸ Step 2: Auditing site + finding keyword gaps...");
-  const { act } = await import("../src/act/index");
-  const host = new URL(arg.includes("://") ? arg : `https://${arg}`).hostname;
-  const output = await act({
-    client: { url: arg, repo: "", name: host },
-    queries,
-    sources,
-    live: { generate: !!process.env.DEEPSEEK_API_KEY },
-  });
-
-  // ── Report ────────────────────────────────────────────────
-  console.error(`\n▸ Step 3: Report\n`);
-
-  // Keyword gaps
-  if (output.gaps.length) {
-    console.error("═══ KEYWORD GAPS (add these to your content) ═══\n");
-    for (const g of output.gaps) {
-      console.error(`  • "${g.keyword}"`);
-      console.error(`    Type: ${g.type}  |  Citations: ${g.citations}`);
-      if (g.competing_domains?.length) {
-        console.error(`    Competing: ${g.competing_domains.join(", ")}`);
+  if (typeof flags.queries === "string") {
+    try {
+      const raw = await fs.readFile(flags.queries, "utf8");
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) {
+        queries = data;
+        sources = [];
+      } else {
+        queries = data.queries ?? [];
+        sources = data.sources ?? [];
       }
-      console.error("");
+      console.error(`queries: loaded from ${flags.queries}`);
+    } catch (err) {
+      console.error("failed to read queries file:", err);
+      process.exit(1);
     }
   } else {
-    console.error("  No keyword gaps found — the site appears to already target all relevant terms.\n");
-  }
-
-  // Metadata update
-  const metaAction = output.actions.find((a) => a.type === "meta") as any;
-  if (metaAction) {
-    console.error("═══ UPDATED METADATA (saved to cited-metadata.txt) ═══\n");
-    const metadata = [
-      `# CITED — Recommended metadata update for ${arg}`,
-      `# Generated: ${new Date().toISOString()}`,
-      ``,
-      `# BEFORE`,
-      `${metaAction.before}`,
-      ``,
-      `# AFTER`,
-      `${metaAction.after}`,
-    ].join("\n");
-
-    console.error(metadata);
-    console.error("");
-
-    await fs.writeFile(path.join(process.cwd(), "cited-metadata.txt"), metadata + "\n");
-    console.error("  Saved to ./cited-metadata.txt\n");
-  }
-
-  // Other actions
-  const other = output.actions.filter((a) => a.type !== "meta");
-  if (other.length) {
-    console.error("═══ OTHER FIXES ═══\n");
-    for (const a of other) {
-      console.error(`  • ${a.type}: ${(a as any).file || ""}`);
-      console.error(`    ${(a as any).rationale || ""}`);
-      console.error("");
+    try {
+      const fixtureRaw = await fs.readFile(
+        path.join(process.cwd(), "fixture.json"),
+        "utf8",
+      );
+      const fixture = JSON.parse(fixtureRaw);
+      queries = fixture.queries ?? [];
+      sources = fixture.sources ?? [];
+      console.error("queries: loaded from fixture.json");
+    } catch {
+      console.error("queries: fixture.json not found (ran without --queries)");
     }
   }
 
-  const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-  console.error(`Done in ${elapsed}s\n`);
+  const liveCall = flags["live-call"] === true || flags["live-all"] === true;
+  const livePr = flags["live-pr"] === true || flags["live-all"] === true;
+  const liveIndexnow =
+    flags["live-indexnow"] === true || flags["live-all"] === true;
+
+  console.error(
+    `keys: VOYGR_API_KEY=${process.env.VOYGR_API_KEY ? "set" : "MISSING"} ` +
+      `ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY ? "set" : "MISSING"} ` +
+      `OPENROUTER_API_KEY=${process.env.OPENROUTER_API_KEY ? "set" : "MISSING"} ` +
+      `GITHUB_TOKEN=${process.env.GITHUB_TOKEN ? "set" : "MISSING"} ` +
+      `INDEXNOW_KEY=${process.env.INDEXNOW_KEY ? "set" : "MISSING"}`,
+  );
+
+  if (liveCall || livePr || liveIndexnow) {
+    const parts: string[] = [];
+    if (liveCall) parts.push("real outbound phone calls");
+    if (livePr) parts.push("a real GitHub PR");
+    if (liveIndexnow) parts.push("a real IndexNow submission");
+    console.error(
+      `\n[LIVE MODE] This run will make: ${parts.join(", ")}.`,
+    );
+    console.error("Waiting 5 seconds — Ctrl-C to abort...");
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
+
+  const { act } = await import("../src/act/index");
+
+  const t0 = Date.now();
+  const out = await act({
+    client: { url, repo: clientRepo, name: clientName },
+    queries: queries as any,
+    sources: sources as any,
+    fixture: flags.fixture === true ? true : undefined,
+    live: {
+      call: liveCall,
+      pr: livePr,
+      indexnow: liveIndexnow,
+    },
+  });
+
+  console.error(`\nDone in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+  console.log(JSON.stringify(out, null, 2));
 }
 
 main().catch((e) => {

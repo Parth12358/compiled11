@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "act": "npx tsx scripts/act.ts",
+    "act": "tsx src/act/index.ts",
+    "act:scan": "npx tsx scripts/act.ts",
     "dev": "hexclave dev --config-file ./hexclave.config.ts -- node scripts/dev.js",
     "dev:plain": "node scripts/dev.js",
     "dev:next": "next dev",

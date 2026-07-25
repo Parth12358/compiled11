@@ -1,6 +1,6 @@
 // Aggregate engine results into a source leaderboard + visibility score.
 import { EngineResult, RetrieveOutput, SourceStats } from "./types";
-import type { QueryResult } from "../contract";
+import { QueryResult } from "../contract";
 
 const MAX_SOURCES = 20;
 
@@ -30,7 +30,6 @@ function urlToDomain(url: string): string | null {
 /**
  * Group results by query (merging engines), count per-domain presence, mark the
  * client, and score visibility = queries citing the client / queries with results.
- * Also builds QueryResult[] for Person B consumption per the data contract.
  */
 export function aggregate(results: EngineResult[], clientDomain: string): RetrieveOutput {
   const client = normalizeDomain(clientDomain);
@@ -46,29 +45,44 @@ export function aggregate(results: EngineResult[], clientDomain: string): Retrie
   let totalQueries = 0;
   const queries: QueryResult[] = [];
 
-  for (const [queryText, urls] of urlsByQuery) {
-    // Distinct domains cited by this query.
+  for (const [query, urls] of urlsByQuery) {
+    const seenUrls = new Set<string>();
+    const cited_urls: string[] = [];
+    for (const u of urls) {
+      if (!seenUrls.has(u)) {
+        seenUrls.add(u);
+        cited_urls.push(u);
+      }
+    }
+    const citedDomainsMap = new Map<string, true>();
+    const cited_domains: string[] = [];
+    for (const u of cited_urls) {
+      const d = extractDomain(u);
+      if (!citedDomainsMap.has(d)) {
+        citedDomainsMap.set(d, true);
+        cited_domains.push(d);
+      }
+    }
+    queries.push({
+      query,
+      cited_urls,
+      cited_domains,
+      client_cited: citedDomainsMap.has(client),
+      citation_count: cited_urls.length,
+    });
+
     const domains = new Set<string>();
     for (const u of urls) {
       const d = urlToDomain(u);
       if (d) domains.add(d);
     }
-    if (domains.size === 0) continue; // query returned nothing usable
+    if (domains.size === 0) continue;
 
     totalQueries++;
     for (const d of domains) {
       domainCounts.set(d, (domainCounts.get(d) ?? 0) + 1);
     }
-    const clientCited = domains.has(client);
-    if (clientCited) citedQueries++;
-
-    queries.push({
-      query: queryText,
-      cited_urls: urls,
-      cited_domains: [...domains],
-      client_cited: clientCited,
-      citation_count: urls.length,
-    });
+    if (domains.has(client)) citedQueries++;
   }
 
   const sources: SourceStats[] = [...domainCounts.entries()]

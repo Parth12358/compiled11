@@ -5,3 +5,8 @@ cache/
 report.json
 out/
 .vercel
+dist/
+*.log
+.DS_Store
+.worktrees/
+.claude/.github-coordination.json

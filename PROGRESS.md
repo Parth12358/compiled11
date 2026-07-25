@@ -1,185 +1,133 @@
 # CITED — Progress Tracker
 
-**Hackathon:** c0mpiled Startup School, 24 Jul 2026  
-**Repo:** compiled11  
+**Hackathon:** c0mpiled Startup School, 24 Jul 2026
+**Repo:** compiled11
+**Test client:** BR Gutter Pros (`https://brgutterpros.com`), Baton Rouge, LA
 
 ---
 
-## Overall Status
+## Team & Workstreams
 
-| Module | Person | Status | Files with code | Stub files |
-|--------|--------|--------|-----------------|------------|
-| `src/retrieve/` | **A** | ✅ **DONE** | 7 | 0 |
-| `src/act/` | **B** | ✅ **DONE** | 6 | 0 |
-| `src/ui/` | **C** | ✅ **DONE** | 2 | 0 |
-| `scripts/` | — | ✅ **DONE** | 2 | 0 |
+| Person | Module | Status | Notes |
+|--------|--------|--------|-------|
+| **A** (Parth) | `/src/retrieve` — queries, citation capture, aggregation | done | Now also emits `queries[]` per the contract. OpenRouter model corrected to `perplexity/sonar`. |
+| **B** | `/src/act` — audit, gap diff, generation, outreach, classify, call, PR | done | Implemented and verified end to end. |
+| **C** | `/src/ui` — dashboard, diff viewer, demo surface | **not started** | Stubs only. No `app/` or `pages/` directory exists. Largest remaining gap. |
 
 ---
 
-## Person A — Retrieval (`src/retrieve/`) ✅ COMPLETE
+## Person A — Retrieval (`src/retrieve/`)
 
 ### Files
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `types.ts` | 37 | Shared interfaces: `Citation`, `EngineName`, `EngineResult`, `SourceStats`, `Score`, `RetrieveOutput` |
-| `scrape.ts` | 111 | Fetches homepage, extracts title/meta/OG tags → `{category, keywords}`. Falls back to hostname slug. Timeout: 5s (env-overridable via `SCRAPE_TIMEOUT`). |
-| `queries.ts` | 74 | 25 templates + keyword-driven queries → max 30 deduplicated queries. 8 generic fallback queries when no category. |
-| `engine.ts` | 302 | Two engine adapters (OpenAI + DeepSeek), both via the OpenAI SDK. Concurrency-limited (`mapPool`, N=4 default). 45s timeout, retry on 5xx/429/timeout with exponential backoff + Retry-After. File-based cache. `search_context_size` configurable. OpenRouter disabled. |
-| `aggregate.ts` | 94 | Merges engines per query, counts distinct domains per query, flags `client_present`, computes `visibility = cited_queries / total_queries` (4dp), top 20 sources. Also builds `QueryResult[]` for Person B. |
-| `cache.ts` | 38 | File-based JSON cache (`cache/` dir, MD5-hashed filenames, TTL configurable via `RETRIEVE_CACHE_TTL`, default 1h). Never throws. |
-| `index.ts` | 85 | Orchestrator: scrape → queries → engines (parallel, 90s hard deadline) → aggregate. Returns `{score, sources, queries}`. Never throws. |
+| File | Status |
+|------|--------|
+| `types.ts` | done |
+| `scrape.ts` | done |
+| `queries.ts` | done |
+| `engine.ts` | done |
+| `aggregate.ts` | done |
+| `cache.ts` | done |
+| `index.ts` | done |
 
-### Engine strategy (final)
+### Implementation
 
-| Engine | Transport | Citation method | Status |
-|--------|-----------|-----------------|--------|
-| **OpenAI** | OpenAI SDK (connection pool) | Responses API `web_search` tool → structured `url_citation` annotations | Primary |
-| **DeepSeek** | OpenAI SDK (baseURL override) | `chat.completions.create` → regex URL extraction from text (no native web search; training-memory recall) | Secondary |
-| **OpenRouter** | Raw `fetch()` (unused) | `:online` suffix → `url_citation` annotations | Disabled — slower than OpenAI |
-
-### Performance
-
-| Scenario | Time | What happens |
-|----------|------|-------------|
-| **Cold run** (2 engines, no cache) | ~90s (capped) | 25 queries × 4 concurrent rounds × ~3s, hard deadline at 90s |
-| **Warm run** (fully cached) | ~5s | Scrape only — all API calls hit disk cache |
-| **No keys** | <1ms | Returns `{visibility: 0, …}` immediately |
-
-**Optimizations applied:**
-- `mapPool` with `CONCURRENCY=4` (env-overridable) — 4× speedup vs sequential
-- 5xx/429/timeout retry with exponential backoff (1s, 2s, 4s) + `Retry-After` header respect
-- Both engines use OpenAI SDK (built-in connection pooling, no TLS-per-query)
-- Scrape timeout reduced to 5s (`SCRAPE_TIMEOUT` env var)
-- Hard deadline at 90s (`RETRIEVE_TIMEOUT` env var) — drops unfinished engine work, aggregates partial results
-- Cache TTL configurable (`RETRIEVE_CACHE_TTL`, default 3600000ms)
-- `search_context_size` configurable (`OPENAI_SEARCH_CONTEXT_SIZE`, default `"low"`)
-- OpenRouter disabled — added latency without better results
+- **Engines:** Primary = OpenAI Responses API (`web_search` tool, structured `url_citation` annotations). Fallback = OpenRouter `perplexity/sonar` (was `openai/gpt-5.2:online`, which does not exist — corrected).
+- Both engines run in **parallel**; queries run **sequentially within** each engine to dodge rate limits (429 → 1s retry, ×2). 15s timeout per query.
+- `scrape.ts` pulls `<title>` / meta description / meta keywords / OG tags → `{ category, keywords }`; falls back to hostname slug.
+- `queries.ts` → 25 templates + up to 6 keyword-driven queries, deduped, capped at 30. Generic fallback when no category.
+- `aggregate.ts` merges engines per query, counts **distinct domains per query**, flags `client_present`, scores `visibility = cited_queries / total_queries` (rounded 4dp), top 20 sources.
+- `cache.ts` writes every non-empty result to `cache/` (md5 key, 1h TTL) so the demo re-runs offline.
+- **Now emits `queries[]`** for downstream consumption by Part B (outreach classifier uses uncited queries for target discovery).
+- **Never crashes:** missing key → engine skipped; both missing → `{ visibility:0, cited_queries:0, total_queries:0, sources:[] }`.
 
 ### Verification
 
 - `npx tsc --noEmit` → clean.
-- CLI runner: `npm run retrieve -- https://getknova.dev` → produces valid JSON.
-- Smoke test: `npm run retrieve -- --smoke "best project management tool"` → validates each engine individually.
-- Contract bridge: `queries: QueryResult[]` in retrieve output feeds `computeGaps()` in act module.
+- Offline test suite (buildQueries / aggregate / domain normalization / cache round-trip / no-keys path) → all pass.
+- Live homepage scrape confirmed against example.com + linear.app.
+
+### Env vars
+
+- `OPENAI_API_KEY` and/or `OPENROUTER_API_KEY` in `.env`.
 
 ---
 
-## Person B — Action (`src/act/`) ✅ DONE
+## Person B — Action (`src/act/`)
 
 ### Files
 
-| File | Lines | Status | Purpose |
-|------|-------|--------|---------|
-| `audit.ts` | 249 | ✅ done | Full site audit: 4 parallel HTTP fetches (HTML, robots.txt, llms.txt, sitemap). Extracts title/meta/canonical/JSON-LD, parses robots.txt for AI crawler access, fetches sitemap (up to 50 pages), extracts NAP data. |
-| `gaps.ts` | 72 | ✅ done | Gap analyzer: tokenizes queries, checks if client pages target each keyword (≥2 token overlap), classifies as `missing_page` or `thin_content`. |
-| `generate.ts` | 240 | ✅ done | Content generator: 4 parallel DeepSeek-v4-pro calls (via OpenAI SDK). Produces: metadata rewrite (`MetaAction`), landing page (`NewPageAction`), `llms.txt`, `robots.txt` fix. |
-| `pr.ts` | 154 | ✅ done | GitHub PR creator: uses `@octokit/rest`. Decoupled from pipeline — use standalone if PR creation needed. |
-| `index.ts` | 41 | ✅ done | Orchestrator: `act(input)` wires audit → gaps → generate. PR step decoupled. Output: keyword gaps + downloadable metadata. |
-| `adapters/voygr.ts` | 73 | ✅ done | Voygr telephony adapter: `placeCall`, `getCall`, `getUsage`, `awaitCall` with polling. |
+| File | Role | Status |
+|------|------|--------|
+| `audit.ts` | Homepage + robots.txt + llms.txt + sitemap audit, JSON-LD NAP extraction | done |
+| `gaps.ts` | Per-query gap diff → `missing_page` / `thin_content` | done |
+| `generate.ts` | LLM metadata + JSON-LD schema + robots.txt + llms.txt + gap page, each with a deterministic no-key fallback | done |
+| `outreach.ts` | Autonomous target discovery, phone scraping, call-brief authoring | done |
+| `classify.ts` | LLM judgment of competitor vs. directory/chamber/association | done |
+| `call.ts` | Voygr call runner, outcome mapping, quota guard | done |
+| `pr.ts` | Octokit PR + IndexNow ping | done |
+| `index.ts` | `act()` orchestrator | done |
+| `adapters/voygr.ts` | Voygr voice-call API adapter | done |
+| `scripts/act.ts` | CLI runner | done |
 
-### Pipeline
+### Implementation
 
-```
-act({ client, queries, sources, live })
-  │
-  ├─ 1. auditSite(client.url)          → AuditResult (4 parallel HTTP fetches)
-  ├─ 2. computeGaps(queries, audit)    → Gap[] (missing_page | thin_content)
-  └─ 3. generateActions(gaps, audit)   → Action[] (4 parallel LLM calls)
-       │
-       └─ Output: keyword list + cited-metadata.txt for download
-```
-
-PR creation (`pr.ts`) is decoupled — available standalone if repo write access is available.
-
-### Output
-
-| Artifact | Format | Where |
-|----------|--------|-------|
-| Keyword gaps | Ranked list with citations + competing domains | Terminal output |
-| Updated metadata | Before/after title + description diff | `./cited-metadata.txt` |
-| New content page | Markdown landing page for top gap keyword | In actions output |
-| llms.txt | Generated if missing | In actions output |
-| robots.txt | Generated/fixed if AI crawlers blocked | In actions output |
-
-### Performance
-
-| Stage | Before | After | Mechanism |
-|-------|--------|-------|-----------|
-| Audit | 40s worst (4 sequential × 10s) | 10s worst (4 parallel) | `Promise.allSettled` all 4 fetches |
-| Generate | 240s worst (4 sequential × 60s) | 60s worst (4 parallel) | `Promise.allSettled` all 4 LLM calls |
-| Full pipeline (cached retrieve) | 180s+ | ~40s | Deadlines at 90s retrieve + 90s generate |
-
-### Timeouts
-
-```
-RETRIEVE_TIMEOUT=90000        # retrieve deadline (default 90s)
-ACT_GENERATE_TIMEOUT=90000    # generate deadline (default 90s)
-```
+- **Audit** inspects homepage metadata, robots.txt, llms.txt, sitemaps, and extracts NAP (name/address/phone) from JSON-LD.
+- **Gap diff** runs per-query, classifying each as `missing_page` or `thin_content`.
+- **Generation** produces metadata rewrites, JSON-LD schema, robots.txt, llms.txt, and a gap-targeting page. Each has a deterministic no-key fallback (no LLM API call needed).
+- **Outreach (the differentiator):**
+  1. Candidate domains come from `queries[]` where the client was not cited.
+  2. A cheap deterministic pre-filter drops platforms that cannot be phoned (`NEVER_CALL`).
+  3. An LLM classifier judges each remaining domain: category, and whether it is the client's direct COMPETITOR. Competitors are never called. Replaced string heuristics — `gutters.promatcher.com` (a directory) was wrongly flagged a competitor by substring match.
+  4. Phone scraping: JSON-LD `telephone` → `tel:` link → proximity-gated visible-text regex, normalized to E.164. Measured 6/6 on chambers, associations, and niche directories.
+  5. A call brief is written per target, then Voygr places the call.
+- **PR** opens via Octokit, then submits an IndexNow ping.
 
 ### Verification
 
-- `npx tsc --noEmit` → clean.
-- CLI runner: `npm run act -- https://getknova.dev` → 5 keyword gaps, metadata saved to `cited-metadata.txt`, 40s end-to-end.
-- `openPR()` available standalone if GitHub integration needed.
+- End-to-end pipeline runs successfully against BR Gutter Pros fixture data.
+- Phone scraping: 6/6 on chambers, associations, and niche directories.
+- Classifier correctly distinguishes `gutters.promatcher.com` as a directory (not competitor).
+- Deterministic fallbacks for generation work without API keys.
 
-### Integration with Person C
+### Safety posture
 
-- **Handoff:** write merged output to **`report.json`** at the repo root — `/api/report` serves it and the UI renders it.
-- Write a script or manual step that creates `report.json` from act output + fixture.json shape.
+- **Dry-run by default.** Real calls need `--live-call`, real PRs need `--live-pr`, IndexNow needs `--live-indexnow`.
+- `--live-all` arms everything; CLI prints a warning then waits 5 seconds before proceeding.
+- Call targets start at `status: "pending_approval"`.
+- We never call competitors.
+- We never post to sites the client does not own.
 
----
+### Env vars
 
-## Person C — Interface (`src/ui/`) ✅ DONE
-
-### What exists
-- **Design:** "the machine's reading room" — paper-world hero → streaming query scan → ink-flood inversion → dark dashboard where citations glow amber. Fraunces / Instrument Sans / IBM Plex Mono, all vendored in `src/ui/fonts/` (zero network). Palette CVD-validated (diff green adjusted to `#2BA793`, deutan ΔE 9.8). Backgrounds generated with ChatGPT (`public/assets/beam.jpg`, `constellation.jpg`).
-- **Flow:** `idle → scanning → revealed`. Scan runs ≥4s and races `GET /api/report` with a hard 3.5s abort → falls back to bundled fixture; the demo cannot stall on network.
-- **Sections:** verdict headline + animated score arc (denominator explicit), ranked source leaderboard (amber = client present), gap keyword cards, diff viewer (rewrite diffs + generated-file mode, per-file tabs), ship panel (PR link / "Connect repo" ghost + IndexNow state), Hexclave $99/mo checkout card, close line.
-- **Demo modes:**
-  - `npm run dev:plain` → http://localhost:3000 — full interactive flow (standalone, no Hexclave).
-  - **Pre-baked tab-2 spine: `http://localhost:3000/?fixture=1`** — zero network, straight to the reveal.
-  - `npm run dev -- --fixture` also works (dev.js shim maps the flag).
-  - `npm run dev` = Hexclave CLI wrapper (onboarding/link flow) around the same server.
-
-### Integration seams for A + B
-- **Contract:** `fixture.json` (values enriched, **shape unchanged**). Types in `src/ui/types.ts`.
-- **Handoff:** write your merged output to **`report.json` at the repo root** — `/api/report` serves it and the UI renders it identically to the fixture. `pr_url` / `indexnow_submitted_at` light up the ship panel automatically.
-
-### Hexclave (sponsor)
-- `@hexclave/next` installed; auth handler at `/handler/*`, sign-in button in the dashboard topbar, payments checkout card (`prod_pro_monthly`, create in dashboard → Apps → Payments), `deployments-alpha` configured in `hexclave.config.ts`.
-- All Hexclave surfaces are env-gated: keyless runs render fallbacks and never construct the SDK (the demo can't be broken by a missing project).
+- `ANTHROPIC_API_KEY`, `VOYGR_API_KEY`, `GITHUB_TOKEN`, `INDEXNOW_KEY`, `DEMO_PHONE`.
 
 ---
 
-## Scripts (`scripts/`) ✅ DONE
+## Person C — UI (`src/ui/`)
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `retrieve.ts` | 144 | CLI test runner. Loads `.env`, lists available models (`--models`), smoke tests each engine (`--smoke`), runs full `retrieve()` pipeline on a URL, prints JSON + timing. |
-| `act.ts` | 125 | CLI reporter. Runs retrieve → audit → gaps → generate. Outputs keyword gaps, source leaderboard, updated metadata (saved to `cited-metadata.txt`). |
+| Status | Notes |
+|--------|-------|
+| **not started** | Stubs only. No `app/` or `pages/` directory exists. `npm run dev` serves nothing. Largest remaining gap. |
 
-Usage:
-```bash
-npm run retrieve -- https://example.com          # run full retrieval pipeline
-npm run retrieve -- --smoke "best car detailing"  # quick engine validation (1 query each)
-npm run retrieve -- --models                      # list available models from all providers
-npm run act -- https://yoursite.com               # full report: keywords + metadata download
-```
+---
+
+## Known Issues
+
+| Issue | Detail |
+|-------|--------|
+| **Part C does not exist** | `src/ui/` is still stubs. No dashboard, diff viewer, or demo surface. `npm run dev` serves nothing. |
+| **`main` and `part-b` diverged** | The `part-b` branch contains the full `/src/act` implementation but has not been merged back. Branches need reconciling. |
+| **Diff-only actions** | `meta` and `schema` actions are rendered as diffs rather than committed, because we do not hold the file's full original contents. |
 
 ---
 
 ## Updates
 
-| Time | Who | What |
-|------|-----|------|
-| — | — | Repo scaffolded: dirs, fixture.json, package.json, empty modules |
-| 24 Jul | A | `/src/retrieve` implemented end-to-end (scrape → queries → engines → aggregate → cache). `openai` added to deps. CLI runner in `scripts/retrieve.ts`. |
-| 24 Jul | A | Concurrency via `mapPool` (N=4), 5xx/timeout retry with exponential backoff, Retry-After header support, HTTP keep-alive via SDK, scrape timeout reduced to 5s, cache TTL + search_context_size made configurable. |
-| 24 Jul | A | DeepSeek migrated from raw `fetch()` to OpenAI SDK (baseURL override). OpenRouter disabled (too slow). Smoke command added. DeepSeek 404 double-path bug fixed. Hard 90s deadline on engine work. |
-| 24 Jul | B | Part-b branch merged: `audit.ts` (site auditor, cheerio), `gaps.ts` (keyword gap analyzer), `voygr.ts` (telephony adapter), `contract.ts` (shared types), `CONTRACT.md`. Dependencies added: `cheerio`, `@anthropic-ai/sdk`, `@octokit/rest`. |
-| 24 Jul | B | `generate.ts` (DeepSeek content gen), `pr.ts` (GitHub PR via Octokit), `index.ts` (orchestrator), `scripts/act.ts` (CLI runner) implemented. Contract bridge: `RetrieveOutput.queries: QueryResult[]`. |
-| 24 Jul | B | Performance overhaul: 4 audit HTTP fetches parallelized (40s→10s), 4 generate LLM calls parallelized (4min→1min). Hard deadlines: `RETRIEVE_TIMEOUT` (90s), `ACT_GENERATE_TIMEOUT` (90s). |
-| 24 Jul | B | PR step decoupled from act pipeline. Pipeline outputs keyword gaps + downloadable metadata file (`cited-metadata.txt`). `pr.ts` available standalone. |
-| 24 Jul | C | Dashboard UI complete: 3-state flow (idle → scanning → revealed), source leaderboard, gap cards, diff viewer, ship panel, Hexclave integration. Demo modes: live + fixture fallback. |
-| 24 Jul | C | All three modules complete. Integration via `report.json` at repo root, served by `/api/report`. |
+| Time | What |
+|------|------|
+| 24 Jul | Repo scaffolded: dirs, fixture.json, package.json, empty modules |
+| 24 Jul | Part A implemented end-to-end. Typecheck + offline tests pass. |
+| — | Part B implemented: audit, gaps, generate, outreach (classify + phone scrape + call brief + Voygr), PR, IndexNow. Verified end to end against BR Gutter Pros. |
+| — | OpenRouter model corrected from `openai/gpt-5.2:online` (does not exist) to `perplexity/sonar`. |
+| — | Vendors removed: CrustData, Firecrawl, Jina, Perplexity-direct, DeepSeek. Env cleaned up. |

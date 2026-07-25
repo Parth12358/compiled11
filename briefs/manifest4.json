@@ -1,0 +1,5 @@
+{"integration_branch":"takeover","base_branch":"takeover",
+ "tasks":[
+  {"id":"noncompete","brief":"noncompete.md","files":["src/act/outreach.ts"],"deps":[]},
+  {"id":"genfix","brief":"genfix.md","files":["src/act/generate.ts"],"deps":[]}
+ ]}

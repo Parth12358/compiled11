@@ -1,0 +1,8 @@
+{
+  "integration_branch": "takeover",
+  "base_branch": "takeover",
+  "tasks": [
+    {"id": "firecrawl", "brief": "firecrawl.md", "files": ["src/act/adapters/firecrawl.ts"], "deps": []},
+    {"id": "phone",     "brief": "phone.md",     "files": ["src/act/outreach.ts"],           "deps": []}
+  ]
+}

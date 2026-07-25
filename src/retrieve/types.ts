@@ -1,16 +1,14 @@
 // Shared types for the retrieval module (Person A).
 // The output must slot directly into fixture.json's `score` + `sources`.
 
-import type { QueryResult } from "../contract";
-
-export type { QueryResult };
+import { QueryResult } from "../contract";
 
 export interface Citation {
   url: string;
   title?: string;
 }
 
-export type EngineName = "openai" | "openrouter" | "deepseek";
+export type EngineName = "openai" | "openrouter";
 
 export interface EngineResult {
   query: string;

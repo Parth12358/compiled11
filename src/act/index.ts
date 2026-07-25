@@ -41,6 +41,21 @@ export async function act(input: ActInput): Promise<ActOutput> {
     return { gaps: [], actions: [], pr_url: null, indexnow_submitted_at: null };
   }
 
+  // The CLI can only derive a name from the hostname, which yields a bare slug
+  // ("brgutterpros") that reads badly in a call brief. Once the audit has run we
+  // have the site's real display name — prefer it whenever the incoming name is
+  // still a slug (no spaces, no capitals).
+  if (/^[a-z0-9-]+$/.test(input.client.name.trim())) {
+    const fromSite = (audit.nap.name ?? audit.title ?? "")
+      .split(/\s*[|–—-]\s*/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .sort((a, b) => a.length - b.length)[0];
+    if (fromSite && /[A-Z]/.test(fromSite) && fromSite.length <= 60) {
+      input = { ...input, client: { ...input.client, name: fromSite } };
+    }
+  }
+
   try {
     gaps = computeGaps(input.queries, audit);
   } catch (err) {

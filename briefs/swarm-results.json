@@ -1,0 +1,47 @@
+{
+  "results": [
+    {
+      "id": "crustdata",
+      "status": "merged",
+      "attempts": 1,
+      "branch": "swarm/crustdata-576cda",
+      "merge": "merged"
+    },
+    {
+      "id": "outreach",
+      "status": "merged",
+      "attempts": 1,
+      "branch": "swarm/outreach-576cda",
+      "merge": "merged"
+    },
+    {
+      "id": "call",
+      "status": "merged",
+      "attempts": 1,
+      "branch": "swarm/call-576cda",
+      "merge": "merged"
+    },
+    {
+      "id": "generate",
+      "status": "merged",
+      "attempts": 1,
+      "branch": "swarm/generate-576cda",
+      "merge": "merged"
+    },
+    {
+      "id": "pr",
+      "status": "merged",
+      "attempts": 1,
+      "branch": "swarm/pr-576cda",
+      "merge": "merged"
+    },
+    {
+      "id": "orchestrate",
+      "status": "merged",
+      "attempts": 1,
+      "branch": "swarm/orchestrate-576cda",
+      "merge": "merged"
+    }
+  ],
+  "land": "landed 6 merge(s) into takeover (ff-only)"
+}

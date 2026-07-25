@@ -1,17 +1,17 @@
 {
   "results": [
     {
-      "id": "noncompete",
+      "id": "classify",
       "status": "merged",
       "attempts": 1,
-      "branch": "swarm/noncompete-521067",
+      "branch": "swarm/classify-402de2",
       "merge": "merged"
     },
     {
-      "id": "genfix",
+      "id": "useclassify",
       "status": "merged",
       "attempts": 1,
-      "branch": "swarm/genfix-521067",
+      "branch": "swarm/useclassify-402de2",
       "merge": "merged"
     }
   ],

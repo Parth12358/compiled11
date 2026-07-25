@@ -1,0 +1,6 @@
+{"integration_branch":"takeover","base_branch":"takeover",
+ "tasks":[
+  {"id":"queries","brief":"queries.md","files":["src/retrieve/index.ts","src/retrieve/aggregate.ts","src/retrieve/types.ts"],"deps":[]},
+  {"id":"engine","brief":"engine.md","files":["src/retrieve/engine.ts"],"deps":[]},
+  {"id":"docs","brief":"docs.md","files":["PROGRESS.md","README.md"],"deps":[]}
+ ]}

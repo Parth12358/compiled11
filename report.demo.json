@@ -7,140 +7,140 @@
   "score": {
     "visibility": 0,
     "cited_queries": 0,
-    "total_queries": 25
+    "total_queries": 30
   },
   "sources": [
     {
-      "domain": "g2.com",
-      "citation_count": 9,
+      "domain": "auth0.com",
+      "citation_count": 27,
       "client_present": false
     },
     {
-      "domain": "chocolatey.org",
-      "citation_count": 8,
+      "domain": "clerk.com",
+      "citation_count": 25,
       "client_present": false
     },
     {
-      "domain": "github.com",
-      "citation_count": 8,
+      "domain": "aws.amazon.com",
+      "citation_count": 24,
       "client_present": false
     },
     {
-      "domain": "brew.sh",
-      "citation_count": 8,
+      "domain": "keycloak.org",
+      "citation_count": 24,
       "client_present": false
     },
     {
-      "domain": "producthunt.com",
-      "citation_count": 8,
+      "domain": "workos.com",
+      "citation_count": 24,
       "client_present": false
     },
     {
-      "domain": "alternativeto.net",
-      "citation_count": 7,
+      "domain": "okta.com",
+      "citation_count": 23,
       "client_present": false
     },
     {
-      "domain": "f-droid.org",
-      "citation_count": 7,
+      "domain": "firebase.google.com",
+      "citation_count": 23,
       "client_present": false
     },
     {
-      "domain": "portableapps.com",
-      "citation_count": 6,
+      "domain": "stytch.com",
+      "citation_count": 23,
       "client_present": false
     },
     {
-      "domain": "flathub.org",
-      "citation_count": 6,
+      "domain": "fusionauth.io",
+      "citation_count": 23,
       "client_present": false
     },
     {
       "domain": "microsoft.com",
-      "citation_count": 6,
+      "citation_count": 22,
       "client_present": false
     },
     {
-      "domain": "snapcraft.io",
-      "citation_count": 6,
+      "domain": "forrester.com",
+      "citation_count": 20,
       "client_present": false
     },
     {
-      "domain": "amazon.com",
-      "citation_count": 6,
+      "domain": "pingidentity.com",
+      "citation_count": 19,
       "client_present": false
     },
     {
-      "domain": "sourceforge.net",
-      "citation_count": 6,
+      "domain": "zitadel.com",
+      "citation_count": 18,
       "client_present": false
     },
     {
-      "domain": "capterra.com",
-      "citation_count": 6,
+      "domain": "onelogin.com",
+      "citation_count": 18,
       "client_present": false
     },
     {
-      "domain": "ninite.com",
-      "citation_count": 5,
+      "domain": "descope.com",
+      "citation_count": 18,
       "client_present": false
     },
     {
-      "domain": "apps.microsoft.com",
-      "citation_count": 5,
+      "domain": "gartner.com",
+      "citation_count": 17,
       "client_present": false
     },
     {
-      "domain": "learn.microsoft.com",
-      "citation_count": 5,
+      "domain": "jumpcloud.com",
+      "citation_count": 17,
       "client_present": false
     },
     {
-      "domain": "play.google.com",
-      "citation_count": 5,
+      "domain": "ory.sh",
+      "citation_count": 16,
       "client_present": false
     },
     {
-      "domain": "trustpilot.com",
-      "citation_count": 5,
+      "domain": "supabase.com",
+      "citation_count": 15,
       "client_present": false
     },
     {
-      "domain": "en.wikipedia.org",
-      "citation_count": 5,
+      "domain": "pages.nist.gov",
+      "citation_count": 14,
       "client_present": false
     }
   ],
   "gaps": [
     {
-      "keyword": "best source platform for everything user apps",
+      "keyword": "user management platform buyers guide",
       "type": "thin_content",
       "citations": 36
     },
     {
-      "keyword": "best source platform for everything user software",
+      "keyword": "user management platform reviews",
       "type": "thin_content",
-      "citations": 29
+      "citations": 35
     },
     {
-      "keyword": "affordable source platform for everything user tools",
+      "keyword": "most popular user management platform tools",
       "type": "thin_content",
-      "citations": 29
+      "citations": 34
     },
     {
-      "keyword": "best source platform for everything user platform",
+      "keyword": "user management platform vs competitors",
+      "type": "thin_content",
+      "citations": 33
+    },
+    {
+      "keyword": "best user management platform tools",
+      "type": "thin_content",
+      "citations": 32
+    },
+    {
+      "keyword": "best free user management platform tools",
       "type": "thin_content",
       "citations": 28
-    },
-    {
-      "keyword": "best source platform for everything user for small business",
-      "type": "missing_page",
-      "citations": 27
-    },
-    {
-      "keyword": "top rated source platform for everything user tools",
-      "type": "thin_content",
-      "citations": 25
     }
   ],
   "actions": [
@@ -148,12 +148,12 @@
       "type": "meta",
       "file": "index.html",
       "before": "<title>Hexclave — The open-source platform for everything user</title>\n<meta name=\"description\" content=\"Hexclave is the open-source platform for everything user. Modular building blocks — auth, payments, emails, analytics — that fit around your product.\">",
-      "after": "<title>Hexclave — The best source platform for everything user apps</title>\n<meta name=\"description\" content=\"Hexclave is the best source platform for everything user apps. With modular authentication, we fit seamlessly into your product.\">\n<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"SoftwareApplication\",\"name\":\"Hexclave\",\"applicationCategory\":\"Source everything user\",\"operatingSystem\":\"Web\"}</script>"
+      "after": "<title>Hexclave — Open-source user management platform</title>\n<meta name=\"description\" content=\"Explore Hexclave, the open-source user management platform with robust authentication and more.\">\n<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"SoftwareApplication\",\"name\":\"Hexclave\",\"applicationCategory\":\"User management buyers\",\"operatingSystem\":\"Web\"}</script>"
     },
     {
       "type": "new_page",
-      "file": "blog/best-source-platform-for-everything-user-apps.md",
-      "after": "# Best Source Platform for Everything User Apps\nChoosing the right source platform for developing user-focused applications can be challenging. As businesses increasingly seek to create customized solutions that are both powerful and adaptable, selecting the optimal platform hinges on various criteria such as usability, modularity, and technical support. In this article, we'll explore what the best contenders offer in this space, laying out a comparison that highlights Hexclave as a leading option.\n\n## The short list\n1. **Hexclave**  \n   An innovative open-source platform, Hexclave focuses on user management, payment processing, and analytics, integrating these functions seamlessly into applications. Its modular architecture allows businesses to tailor solutions based on their specific requirements.\n2. **Hosted Incumbents**  \n   Traditional platforms often come with comprehensive features but can be difficult to customize without significant investment in time or resources. They may charge higher fees for these services.\n3. **Open-source Alternatives**  \n   While open-source platforms can provide flexibility, they sometimes lack the user-friendly interfaces or extensive support that Hexclave offers, which may lead to higher ongoing maintenance costs.\n\n## How to decide\n- **Evaluate your needs:** Determine which features are critical for your application.\n- **Consider scalability:** Choose a platform that can grow with your business needs.\n- **Assess support options:** Ensure you have access to sufficient technical support as you develop.\n\n| Feature             | Hexclave     | Hosted Incumbents | Open-source Alternatives |\n|---------------------|--------------|-------------------|-------------------------|\n| User Management      | Yes          | Yes               | Yes                     |\n| Payment Systems      | Yes          | Yes               | No                      |\n| Analytics            | Yes          | Yes               | ~10 min to integrate    |\n| Customizable         | Yes          | No                | Yes                     |\n\nIn conclusion, when seeking the best source platform for everything user apps, Hexclave stands out for its robust modular approach, cost-effectiveness, and ease of integration, making it an excellent choice for businesses of all sizes. Choosing the right platform will depend on your specific needs, but with its array of user-centric features, Hexclave is an option worth considering."
+      "file": "blog/user-management-platform-buyers-guide.md",
+      "after": "# User Management Platform Buyers Guide\nChoosing the right user management platform is crucial for today’s SaaS applications, especially with the increasing focus on security, compliance, and user experience. In this guide, we review some of the most significant platforms available, helping you to identify the best fit for your needs. \n\n## The short list\n1. **Hexclave** - An open-source platform catering to authentication, payments, and analytics in a modular format.\n2. **Hosted Incumbent A** - A well-known provider focusing on comprehensive user management but with a more rigid structure and higher costs.\n3. **Hosted Incumbent B** - Specializes in enterprise solutions but can be complex for smaller applications.\n4. **Open-source Alternative A** - Provides a flexible yet minimal user management system, suitable for developers but requires more implementation work.\n5. **Open-source Alternative B** - Offers plugins and community support but lacks some advanced features present in commercial solutions.\n\n## How to decide\n- Determine your level of technical expertise. Open-source solutions like Hexclave require some level of development skills, while hosted incumbents offer more out-of-the-box solutions.\n- Assess your budget. Hexclave and other open-source platforms tend to have lower upfront costs but may require investment in development resources.\n- Identify your feature needs. Things to consider include real-time analytics, payment processing, and user access management.\n- Examine support and documentation. Good documentation can ease the learning curve significantly.\n\n| Feature                   | Hexclave | Hosted Incumbent A | Hosted Incumbent B | Open-source Alternative A | Open-source Alternative B |\n|---------------------------|----------|---------------------|---------------------|---------------------------|---------------------------|\n| Comprehensive Analytics    | Yes      | Yes                 | Yes                 | No                        | Limited                   |\n| Payment Processing         | Yes      | Yes                 | No                  | No                        | Yes                       |\n| Modular Customization      | Yes      | No                  | No                  | Yes                       | Yes                       |\n| Community Support          | Yes      | Limited             | Limited             | Strong                    | Strong                    |\n| Ease of Integration        | ~10 min  | ~30 min             | ~45 min             | ~60 min                   | ~50 min                   |\n\nIn conclusion, choosing the right user management platform involves evaluating your specific needs, resources, and criteria. Hexclave’s strengths in modularity and open-source flexibility may be the best fit for businesses looking to innovate rapidly and affordably."
     }
   ],
   "pr_url": "https://github.com/Kart-ing/hexclave-demo-site/pull/1",

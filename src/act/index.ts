@@ -381,7 +381,8 @@ export interface ActInput {
   client: { url: string; repo: string; name: string };
   queries: ContractQueryResult[];
   sources: Source[];
-  live?: { generate?: boolean };
+  fixture?: boolean;
+  live?: { generate?: boolean; [flag: string]: boolean | undefined };
 }
 
 export async function act(

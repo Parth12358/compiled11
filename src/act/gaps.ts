@@ -67,8 +67,12 @@ export function deriveGaps(client: Client, audit: SiteAudit, retrieve: RetrieveO
     if (uncited.length > 0) {
       const pageText = audit.page_text.toLowerCase();
       const sitemapUrls = audit.sitemap_urls.map((u) => u.toLowerCase());
-      return uncited
-        .sort((a, b) => b.citations.length - a.citations.length)
+      // Prefer content-worthy keywords: ≥3 meaningful tokens ("user management
+      // platform buyers guide") beat truncated ones ("best open-source") that
+      // only rank high because generic queries attract the most citations.
+      const ranked = uncited.sort((a, b) => b.citations.length - a.citations.length);
+      const meaty = ranked.filter((q) => tokenize(q.query).length >= 3);
+      return (meaty.length >= 3 ? meaty : ranked)
         .slice(0, MAX_GAPS)
         .map((q) => ({
           keyword: q.query,

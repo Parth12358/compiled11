@@ -2,7 +2,7 @@
 
 **Your site ranks on Google. That's not where your buyers are asking anymore.**
 
-CITED points an answer engine at your category, finds out which sources it actually reads, tells you where you're missing — and opens the pull request that fixes it.
+CITED points an answer engine at your category, finds out which sources it actually reads, tells you where you're missing — and delivers the fix.
 
 Built at [c0mpiled Startup School Hackathon](https://lu.ma/), 24 July 2026 · Transpose Platform, San Francisco.
 
@@ -13,7 +13,7 @@ Built at [c0mpiled Startup School Hackathon](https://lu.ma/), 24 July 2026 · Tr
 | Module | Status |
 |--------|--------|
 | **Retrieval** (`src/retrieve/`) — queries, citation capture, aggregation | ✅ Done |
-| **Action** (`src/act/`) — audit, gap diff, content generation, PR | ⬜ Not started |
+| **Action** (`src/act/`) — audit, gap diff, content generation, PR | ✅ Done |
 | **Interface** (`src/ui/`) — dashboard, diff viewer, demo surface | ⬜ Not started |
 
 ---
@@ -32,14 +32,14 @@ The monitoring category is crowded and well funded. Every one of those tools sto
 ## How it works
 
 ```
-site URL + repo URL
-        │
-        ├─▶ run N category queries against AI answer engines
-        ├─▶ capture cited URLs, aggregate by domain
-        ├─▶ score visibility (cited_queries / total_queries)
-        ├─▶ diff client content against gap keywords
-        ├─▶ generate metadata rewrites + a gap-targeting page
-        └─▶ open PR  →  dashboard
+site URL
+    │
+    ├─▶ run N category queries against AI answer engines
+    ├─▶ capture cited URLs, aggregate by domain
+    ├─▶ score visibility (cited_queries / total_queries)
+    ├─▶ audit site content against gap keywords
+    ├─▶ generate metadata rewrites + a gap-targeting page
+    └─▶ report: keyword list + downloadable metadata file
 ```
 
 ## Architecture
@@ -52,22 +52,25 @@ site URL + repo URL
       types.ts           shared interfaces
       scrape.ts          homepage scraper (title, meta, OG tags)
       queries.ts         25-30 query templates
-      engine.ts          OpenAI + OpenRouter + DeepSeek adapters
-      aggregate.ts       domain grouping, score computation
-      cache.ts           file-based response cache (1h TTL)
+      engine.ts          OpenAI + DeepSeek adapters (via OpenAI SDK)
+      aggregate.ts       domain grouping, score + QueryResult[] computation
+      cache.ts           file-based response cache (configurable TTL)
     act/
-      audit.ts           crawl client site (NOT IMPLEMENTED)
-      gaps.ts            diff content vs gap keywords (NOT IMPLEMENTED)
-      generate.ts        LLM-generated fixes (NOT IMPLEMENTED)
-      pr.ts              GitHub PR creation (NOT IMPLEMENTED)
-      index.ts           action orchestrator (NOT IMPLEMENTED)
+      audit.ts           site auditor (4 parallel HTTP fetches) ✅
+      gaps.ts            keyword gap analyzer ✅
+      generate.ts        DeepSeek content + metadata generator (4 parallel) ✅
+      pr.ts              GitHub PR creator (standalone, decoupled from pipeline) ✅
+      index.ts           orchestrator: audit → gaps → generate ✅
+      adapters/
+        voygr.ts         Voygr telephony adapter ✅
     ui/
       dashboard.tsx      full demo surface (NOT IMPLEMENTED)
       index.ts           component exports (NOT IMPLEMENTED)
+  contract.ts             shared data contract — single source of truth
   scripts/
-    retrieve.ts          CLI test runner for retrieval
+    retrieve.ts          CLI: retrieval, smoke tests, model listing
+    act.ts               CLI: full report, keywords + metadata download
   fixture.json           data contract — shared across all modules
-  cache/                 13 cached API responses (gitignored)
 ```
 
 Three modules, one JSON contract between them. Each is independently runnable.
@@ -84,7 +87,15 @@ cp .env.example .env      # add your keys
 
 ```bash
 npm run retrieve -- https://example.com     # full pipeline, prints JSON
+npm run retrieve -- --smoke "best car detailing"  # quick engine validation
 npm run retrieve -- --models                # list available models
+```
+
+### Run the full pipeline from CLI
+
+```bash
+npm run act -- https://yoursite.com     # retrieve → audit → gaps → generate → report
+                                        # outputs: keyword list + cited-metadata.txt
 ```
 
 ### Run the dashboard (coming soon)
@@ -97,10 +108,14 @@ npm run dev               # → http://localhost:3000 (once UI is built)
 
 ```
 OPENAI_API_KEY=           # primary retrieval engine (Responses API with web_search)
-OPENROUTER_API_KEY=       # fallback retrieval engine (:online model suffix)
-DEEPSEEK_API_KEY=         # last-resort engine (no native web search — regex URL extraction)
-GITHUB_TOKEN=             # PR creation (Person B)
-INDEXNOW_KEY=             # optional, accelerates Bing/ChatGPT discovery
+DEEPSEEK_API_KEY=         # retrieval engine + content generation (via OpenAI SDK)
+ANTHROPIC_API_KEY=        # optional alternative for content generation
+OPENROUTER_API_KEY=       # fallback retrieval engine (disabled by default)
+VOYGR_API_KEY=            # optional: AI phone-call backlink outreach
+CRUSTDATA_API_KEY=        # optional: company/contact enrichment
+GITHUB_TOKEN=             # optional: PR creation (standalone via pr.ts)
+INDEXNOW_KEY=             # optional: accelerates Bing/ChatGPT discovery
+DEMO_PHONE=               # optional: demo phone for backlink calls
 ```
 
 **Note:** The retrieval module works with any subset of keys. Missing keys → that engine is silently skipped. If all retrieval keys are absent, the pipeline returns a zeroed result.
@@ -127,9 +142,9 @@ If your module emits it, it works. The `retrieve()` function returns `{ score, s
 
 | | Owns |
 |---|---|
-| **A** | `/retrieve` — queries, citation capture, aggregation |
-| **B** | `/act` — audit, gap diff, generation, PR |
-| **C** | `/ui` — dashboard, diff viewer, the whole demo surface |
+| **A** | `/retrieve` — queries, citation capture, aggregation ✅ |
+| **B** | `/act` — audit, gap diff, content generation ✅ |
+| **C** | `/ui` — dashboard, diff viewer, demo surface ⬜ |
 
 ## What we deliberately don't do
 
@@ -141,7 +156,7 @@ That's a product decision, not a limitation. Astroturfing gets suppressed by the
 
 ## Stack
 
-TypeScript · Next.js · OpenAI API (retrieval, web_search + chat completions) · DeepSeek API (via OpenAI SDK) · Anthropic API (generation, coming soon) · GitHub API (PRs) · Hexclave (auth, coming soon)
+TypeScript · Next.js · OpenAI API (retrieval, web_search) · DeepSeek API (retrieval + content generation) · Cheerio (HTML parsing) · Octokit (GitHub PRs) · Voygr (telephony)
 
 ## License
 

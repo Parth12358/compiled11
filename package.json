@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "act": "tsx src/act/index.ts",
+    "act": "npx tsx scripts/act.ts",
     "dev": "hexclave dev --config-file ./hexclave.config.ts -- node scripts/dev.js",
     "dev:plain": "node scripts/dev.js",
     "dev:next": "next dev",
@@ -13,7 +13,10 @@
     "retrieve": "npx tsx scripts/retrieve.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
     "@hexclave/next": "^1.0.64",
+    "@octokit/rest": "^22.0.1",
+    "cheerio": "^1.2.0",
     "next": "^14.2.0",
     "openai": "^4.104.0",
     "react": "^18.3.0",

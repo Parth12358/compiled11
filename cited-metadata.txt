@@ -1,0 +1,10 @@
+# CITED — Recommended metadata update for https://getknova.dev
+# Generated: 2026-07-25T04:56:12.249Z
+
+# BEFORE
+title: Knova
+description: (none)
+
+# AFTER
+title: Knova - Best Knova Software & Free Tools
+description: Discover the best free Knova tools and the top-rated Knova software to streamline your workflow, boost productivity, and achieve more without breaking the bank.

@@ -1,6 +1,10 @@
 // Shared types for the retrieval module (Person A).
 // The output must slot directly into fixture.json's `score` + `sources`.
 
+import type { QueryResult } from "../contract";
+
+export type { QueryResult };
+
 export interface Citation {
   url: string;
   title?: string;
@@ -29,4 +33,5 @@ export interface Score {
 export interface RetrieveOutput {
   score: Score;
   sources: SourceStats[];
+  queries: QueryResult[];
 }

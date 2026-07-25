@@ -1,0 +1,5 @@
+Person A — retrieval. Run 20–30 category queries, capture which URLs come back as citations, aggregate by domain, flag where the client is absent. Use Perplexity's API and one engine only — it returns citations natively and it's real-time. Five engines in two hours is how you ship nothing. Output: sources + score.
+
+Person B — action. Fetch the client site, audit title/meta/schema/llms.txt, diff against the gap keywords from A, generate the metadata rewrite plus one blog page, open the PR. Two warnings: use a repo you control (you can't open PRs on a stranger's repo, so fork or use a demo site), and if GitHub auth eats more than 20 minutes, fall back to rendering the diff in the UI with a "connect repo" button. The patch is the artifact; the PR is the flourish.
+
+Person C — dashboard. Owns the entire demo surface, starts from the fixture at minute zero, never blocked once. Most Beautiful is still live and this is where it's won. Hexclave for client login is the $1000, and it's an honest use.

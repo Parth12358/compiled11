@@ -7,8 +7,8 @@
 // (A's keyless EMPTY counts as invalid) → fixture.json → zero score.
 // Everything degrades; exit code 1 only for missing/invalid --url or --repo.
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 
 import { auditSite } from "./audit";
 import { deriveGaps } from "./gaps";
@@ -345,6 +345,7 @@ async function main(): Promise<void> {
     indexnow_submitted_at: indexnowAt,
   };
   try {
+    mkdirSync(dirname(outPath), { recursive: true });
     writeFileSync(outPath, JSON.stringify(report, null, 2) + "\n"); // data → file only; stdout stays clean
   } catch (e) {
     console.error(`[act] failed to write report to ${outPath}: ${msg(e)}`);

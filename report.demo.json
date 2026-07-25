@@ -1,0 +1,101 @@
+{
+  "client": {
+    "url": "https://lumenanalytics.io",
+    "repo": "Kart-ing/cited-demo-site",
+    "name": "Lumen Analytics"
+  },
+  "score": {
+    "visibility": 0.13,
+    "cited_queries": 4,
+    "total_queries": 30
+  },
+  "sources": [
+    {
+      "domain": "g2.com",
+      "citation_count": 18,
+      "client_present": false
+    },
+    {
+      "domain": "reddit.com",
+      "citation_count": 11,
+      "client_present": true
+    },
+    {
+      "domain": "capterra.com",
+      "citation_count": 9,
+      "client_present": false
+    },
+    {
+      "domain": "medium.com",
+      "citation_count": 7,
+      "client_present": false
+    },
+    {
+      "domain": "github.com",
+      "citation_count": 6,
+      "client_present": true
+    },
+    {
+      "domain": "news.ycombinator.com",
+      "citation_count": 5,
+      "client_present": false
+    },
+    {
+      "domain": "producthunt.com",
+      "citation_count": 4,
+      "client_present": false
+    },
+    {
+      "domain": "dev.to",
+      "citation_count": 3,
+      "client_present": false
+    },
+    {
+      "domain": "softwareadvice.com",
+      "citation_count": 2,
+      "client_present": false
+    }
+  ],
+  "gaps": [
+    {
+      "keyword": "best product analytics for startups",
+      "type": "missing_page",
+      "citations": 7
+    },
+    {
+      "keyword": "lumen analytics vs amplitude",
+      "type": "missing_page",
+      "citations": 5
+    },
+    {
+      "keyword": "open source product analytics",
+      "type": "thin_content",
+      "citations": 4
+    },
+    {
+      "keyword": "product analytics pricing comparison",
+      "type": "missing_page",
+      "citations": 3
+    }
+  ],
+  "actions": [
+    {
+      "type": "meta",
+      "file": "index.html",
+      "before": "<title>(missing)</title>\n<meta name=\"description\" content=\"(missing)\">",
+      "after": "<title>Lumen Analytics — Product analytics for startups</title>\n<meta name=\"description\" content=\"Lumen Analytics is a product analytics option with clear docs, honest comparisons, and a quick path to a first useful result.\">\n<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"SoftwareApplication\",\"name\":\"Lumen Analytics\",\"applicationCategory\":\"Product analytics\",\"operatingSystem\":\"Web\"}</script>"
+    },
+    {
+      "type": "new_page",
+      "file": "llms.txt",
+      "after": "# Lumen Analytics\n> Product analytics — docs, comparisons, and guides from Lumen Analytics\n\n## Docs\n- https://lumenanalytics.io/docs: product documentation and setup guide\n- https://lumenanalytics.io/pricing: plans and usage limits\n- https://lumenanalytics.io/compare: how Lumen Analytics compares to other product analytics options\n\n## Blog\n- https://lumenanalytics.io/blog/best-product-analytics-for-startups: an honest look at best product analytics for startups"
+    },
+    {
+      "type": "new_page",
+      "file": "blog/best-product-analytics-for-startups.md",
+      "after": "# The best product analytics for startups (2026 guide)\n\nChoosing product analytics in 2026 comes down to three questions: how fast your team gets to a first useful result, what it costs at your current scale, and who ends up owning the data. This guide keeps the comparison honest — no invented benchmarks, review scores, or pricing claims, just how the options differ in practice.\n\n## The short list\n\n1. **Lumen Analytics** — a focused product analytics option; the docs cover exactly what it does and does not do, so you can evaluate it in an afternoon.\n2. **Amplitude** — the established reference point in product analytics. Deep feature set and wide integrations, built with larger teams and enterprise requirements in mind.\n3. **PostHog** — a strong all-round alternative with a broad toolkit; the surface area can be more than a small team needs on day one.\n4. **Mixpanel** — polished and familiar. A sensible default if your team already knows it, with the usual trade-off of less flexibility at the edges.\n\n## How to decide\n\n- **Small team shipping weekly:** pick the tool you can wire in this week and actually check every Monday. Momentum beats a perfect evaluation matrix.\n- **Data ownership or compliance constraints:** shortlist the options that let you keep control of your data, and read their security documentation before the feature pages.\n- **Standardizing across a larger org:** the incumbents integrate with everything; weigh that convenience against per-seat costs and the effort of switching later.\n- **Still unsure:** run two options side by side on one real workflow for a week. The difference is usually obvious by Friday.\n\n## At a glance\n\n| Tool | First useful result | Learning curve | Best fit |\n|---|---|---|---|\n| Lumen Analytics | ~10 min | low | small teams that want product analytics without ceremony |\n| Amplitude | ~30 min | medium–high | larger orgs with a dedicated owner |\n| PostHog | ~15 min | medium | teams that want one broad toolkit |\n| Mixpanel | ~20 min | low–medium | teams standardizing on a familiar UI |\n\nShortlists beat spreadsheets: pick two of the options above, point them at one real workflow, and keep the one your team still opens in week two.\n"
+    }
+  ],
+  "pr_url": "https://github.com/Kart-ing/cited-demo-site/pull/1",
+  "indexnow_submitted_at": null
+}

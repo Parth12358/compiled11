@@ -1,8 +1,8 @@
 {
   "client": {
-    "url": "https://northbaydentalarts.example",
-    "repo": "northbay/site",
-    "name": "Northbay Dental Arts"
+    "url": "https://brgutterpros.com",
+    "repo": "",
+    "name": "BR Gutter Pros"
   },
   "score": {
     "visibility": 0.1333,
@@ -10,16 +10,56 @@
     "total_queries": 30
   },
   "sources": [
-    { "domain": "yelp.com", "citation_count": 21, "client_present": false },
-    { "domain": "healthgrades.com", "citation_count": 17, "client_present": true },
-    { "domain": "reddit.com", "citation_count": 14, "client_present": false },
-    { "domain": "zocdoc.com", "citation_count": 12, "client_present": false },
-    { "domain": "ada.org", "citation_count": 9, "client_present": false },
-    { "domain": "northbaychamber.example", "citation_count": 7, "client_present": false },
-    { "domain": "opencare.com", "citation_count": 6, "client_present": false },
-    { "domain": "northbaydentalarts.example", "citation_count": 4, "client_present": true },
-    { "domain": "nytimes.com", "citation_count": 3, "client_present": false },
-    { "domain": "sfgate.com", "citation_count": 2, "client_present": false }
+    {
+      "domain": "yelp.com",
+      "citation_count": 21,
+      "client_present": false
+    },
+    {
+      "domain": "healthgrades.com",
+      "citation_count": 17,
+      "client_present": true
+    },
+    {
+      "domain": "reddit.com",
+      "citation_count": 14,
+      "client_present": false
+    },
+    {
+      "domain": "zocdoc.com",
+      "citation_count": 12,
+      "client_present": false
+    },
+    {
+      "domain": "ada.org",
+      "citation_count": 9,
+      "client_present": false
+    },
+    {
+      "domain": "northbaychamber.example",
+      "citation_count": 7,
+      "client_present": false
+    },
+    {
+      "domain": "opencare.com",
+      "citation_count": 6,
+      "client_present": false
+    },
+    {
+      "domain": "northbaydentalarts.example",
+      "citation_count": 4,
+      "client_present": true
+    },
+    {
+      "domain": "nytimes.com",
+      "citation_count": 3,
+      "client_present": false
+    },
+    {
+      "domain": "sfgate.com",
+      "citation_count": 2,
+      "client_present": false
+    }
   ],
   "queries": [
     {
@@ -29,7 +69,11 @@
         "https://www.healthgrades.com/dentistry-directory/ca-california/north-bay",
         "https://www.zocdoc.com/dentists/cosmetic-north-bay"
       ],
-      "cited_domains": ["yelp.com", "healthgrades.com", "zocdoc.com"],
+      "cited_domains": [
+        "yelp.com",
+        "healthgrades.com",
+        "zocdoc.com"
+      ],
       "client_cited": false,
       "citation_count": 3
     },
@@ -40,7 +84,11 @@
         "https://www.ada.org/resources/veneers-cost",
         "https://www.opencare.com/blog/veneers-cost/"
       ],
-      "cited_domains": ["reddit.com", "ada.org", "opencare.com"],
+      "cited_domains": [
+        "reddit.com",
+        "ada.org",
+        "opencare.com"
+      ],
       "client_cited": false,
       "citation_count": 3
     },
@@ -51,7 +99,11 @@
         "https://northbaydentalarts.example/emergency",
         "https://www.healthgrades.com/emergency-dental-north-bay"
       ],
-      "cited_domains": ["yelp.com", "northbaydentalarts.example", "healthgrades.com"],
+      "cited_domains": [
+        "yelp.com",
+        "northbaydentalarts.example",
+        "healthgrades.com"
+      ],
       "client_cited": true,
       "citation_count": 3
     },
@@ -61,7 +113,10 @@
         "https://www.ada.org/resources/invisalign-vs-braces",
         "https://www.reddit.com/r/Invisalign/comments/adult_braces"
       ],
-      "cited_domains": ["ada.org", "reddit.com"],
+      "cited_domains": [
+        "ada.org",
+        "reddit.com"
+      ],
       "client_cited": false,
       "citation_count": 2
     },
@@ -71,7 +126,10 @@
         "https://www.zocdoc.com/insurance/delta-dental/north-bay",
         "https://northbaychamber.example/directory/health"
       ],
-      "cited_domains": ["zocdoc.com", "northbaychamber.example"],
+      "cited_domains": [
+        "zocdoc.com",
+        "northbaychamber.example"
+      ],
       "client_cited": false,
       "citation_count": 2
     }
@@ -81,25 +139,39 @@
       "keyword": "how much do veneers cost in the Bay Area",
       "type": "missing_page",
       "citations": 3,
-      "competing_domains": ["reddit.com", "ada.org", "opencare.com"]
+      "competing_domains": [
+        "reddit.com",
+        "ada.org",
+        "opencare.com"
+      ]
     },
     {
       "keyword": "best cosmetic dentist in North Bay",
       "type": "missing_page",
       "citations": 3,
-      "competing_domains": ["yelp.com", "healthgrades.com", "zocdoc.com"]
+      "competing_domains": [
+        "yelp.com",
+        "healthgrades.com",
+        "zocdoc.com"
+      ]
     },
     {
       "keyword": "invisalign vs braces for adults",
       "type": "thin_content",
       "citations": 2,
-      "competing_domains": ["ada.org", "reddit.com"]
+      "competing_domains": [
+        "ada.org",
+        "reddit.com"
+      ]
     },
     {
       "keyword": "dentist accepting Delta Dental North Bay",
       "type": "missing_page",
       "citations": 2,
-      "competing_domains": ["zocdoc.com", "northbaychamber.example"]
+      "competing_domains": [
+        "zocdoc.com",
+        "northbaychamber.example"
+      ]
     }
   ],
   "actions": [
@@ -115,7 +187,7 @@
       "file": "index.html",
       "before": "<title>Northbay Dental Arts | Home</title>\n<meta name=\"description\" content=\"Welcome to our practice. Serving patients since 1998.\">",
       "after": "<title>Cosmetic &amp; Emergency Dentist in North Bay, CA | Northbay Dental Arts</title>\n<meta name=\"description\" content=\"Veneers, Invisalign, and same-day emergency dental care in North Bay. Delta Dental and Cigna accepted. Open Saturdays. Book online or call (707) 555-0142.\">",
-      "rationale": "The original title carries no category, geography, or service terms — nothing for an answer engine to match a local intent query against."
+      "rationale": "The original title carries no category, geography, or service terms \u2014 nothing for an answer engine to match a local intent query against."
     },
     {
       "type": "schema",
@@ -147,8 +219,7 @@
         "contact_person": "Membership Coordinator",
         "contact_title": "Membership Coordinator",
         "why_relevant": "Cited by the engine for \"dentist accepting Delta Dental North Bay\" and its member directory is indexed. The client is a paying member but is not listed under Health.",
-        "cited_by_engine": true,
-        "crustdata_company_id": null
+        "cited_by_engine": true
       },
       "brief": "Call the North Bay Chamber membership line. Confirm Northbay Dental Arts is a current member, ask to be added to the online member directory under Health & Wellness with a link to northbaydentalarts.example, and ask how long the listing takes to appear.",
       "call_id": null,
@@ -170,8 +241,7 @@
         "contact_person": null,
         "contact_title": null,
         "why_relevant": "Cited for the top veneers-cost query. Runs a dentist directory the client is not listed in.",
-        "cited_by_engine": true,
-        "crustdata_company_id": null
+        "cited_by_engine": true
       },
       "brief": "Call Opencare's practice-onboarding line and ask what is required to add Northbay Dental Arts to their North Bay dentist directory, including any fees and the review timeline.",
       "call_id": null,

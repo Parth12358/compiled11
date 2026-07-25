@@ -1,47 +1,19 @@
 {
   "results": [
     {
-      "id": "crustdata",
+      "id": "firecrawl",
       "status": "merged",
       "attempts": 1,
-      "branch": "swarm/crustdata-576cda",
+      "branch": "swarm/firecrawl-0b7943",
       "merge": "merged"
     },
     {
-      "id": "outreach",
+      "id": "phone",
       "status": "merged",
       "attempts": 1,
-      "branch": "swarm/outreach-576cda",
-      "merge": "merged"
-    },
-    {
-      "id": "call",
-      "status": "merged",
-      "attempts": 1,
-      "branch": "swarm/call-576cda",
-      "merge": "merged"
-    },
-    {
-      "id": "generate",
-      "status": "merged",
-      "attempts": 1,
-      "branch": "swarm/generate-576cda",
-      "merge": "merged"
-    },
-    {
-      "id": "pr",
-      "status": "merged",
-      "attempts": 1,
-      "branch": "swarm/pr-576cda",
-      "merge": "merged"
-    },
-    {
-      "id": "orchestrate",
-      "status": "merged",
-      "attempts": 1,
-      "branch": "swarm/orchestrate-576cda",
+      "branch": "swarm/phone-0b7943",
       "merge": "merged"
     }
   ],
-  "land": "landed 6 merge(s) into takeover (ff-only)"
+  "land": "landed 2 merge(s) into takeover (ff-only)"
 }

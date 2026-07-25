@@ -125,7 +125,6 @@ export interface OutreachTarget {
   contact_title?: string | null;
   why_relevant: string;
   cited_by_engine?: boolean;
-  crustdata_company_id?: number | null;
 }
 
 export interface AuditResult {
@@ -163,30 +162,6 @@ export interface VoygrAdapter {
   getCall(call_id: string): Promise<VoygrCallResult>;
   getUsage(): Promise<{ remaining: number; limit: number }>;
   awaitCall(call_id: string, opts?: { timeoutMs?: number; pollMs?: number }): Promise<VoygrCallResult>;
-}
-
-export interface CrustCompany {
-  company_id: number | null;
-  name: string;
-  domain: string | null;
-  linkedin_url?: string | null;
-  phone?: string | null;
-  hq_city?: string | null;
-  hq_region?: string | null;
-}
-
-export interface CrustPerson {
-  name: string;
-  title?: string | null;
-  linkedin_url?: string | null;
-  email?: string | null;
-  phone?: string | null;
-}
-
-export interface CrustDataAdapter {
-  enrichDomain(domain: string): Promise<CrustCompany | null>;
-  findContacts(company: CrustCompany, opts?: { titles?: string[]; limit?: number }): Promise<CrustPerson[]>;
-  searchCompanies(filters: { region?: string; industry?: string; keyword?: string; limit?: number }): Promise<CrustCompany[]>;
 }
 
 export interface ActInput {

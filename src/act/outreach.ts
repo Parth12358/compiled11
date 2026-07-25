@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import type { OutreachTarget, QueryResult, Source, AuditResult, Client, CrustCompany } from "../contract";
 import { crustdata } from "./adapters/crustdata";
+import { firecrawlEnabled, scrapeHtml } from "./adapters/firecrawl";
 
 export const NEVER_CALL: string[] = [
   "reddit.com",
@@ -26,14 +27,6 @@ export const NEVER_CALL: string[] = [
   "cnn.com",
 ];
 
-const UA = "CITED-outreach/0.1";
-
-function safeFetch(input: RequestInfo | URL, init?: RequestInit, timeoutMs = 10_000): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
-}
-
 function hostname(raw: string): string {
   try {
     return new URL(raw).hostname.toLowerCase();
@@ -42,18 +35,53 @@ function hostname(raw: string): string {
   }
 }
 
-function normalizeUrl(raw: string): string {
-  if (!/^https?:\/\//i.test(raw)) {
-    return `https://${raw}`;
-  }
-  return raw;
-}
-
 function isNeverCall(domain: string): boolean {
   const h = hostname(domain).replace(/^www\./, "");
   return NEVER_CALL.some(
     (d) => h === d || h.endsWith("." + d),
   );
+}
+
+// ---------------------------------------------------------------------------
+// fetchHtml — shared browser-like fetcher
+// ---------------------------------------------------------------------------
+
+async function fetchHtml(url: string): Promise<string | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12_000);
+  try {
+    const resp = await fetch(url, {
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "text/html",
+      },
+    });
+    if (!resp.ok) return null;
+    return await resp.text();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// candidateUrls
+// ---------------------------------------------------------------------------
+
+function candidateUrls(domain: string): string[] {
+  const hosts = domain.startsWith("www.") ? [domain] : [domain, `www.${domain}`];
+  const paths = ["", "/contact", "/contact-us", "/about", "/about-us", "/membership", "/join", "/advertise"];
+  const urls: string[] = [];
+  for (const host of hosts) {
+    for (const path of paths) {
+      urls.push(`https://${host}${path}`);
+    }
+  }
+  return urls;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,6 +132,38 @@ export function classifyDomain(
     return "blog";
   }
 
+  // title fallback when domain gave nothing
+  if (t) {
+    if (t.includes("chamber")) return "chamber";
+
+    if (
+      t.includes("association") ||
+      t.includes("assoc") ||
+      t.includes("society") ||
+      t.includes("council") ||
+      t.includes("guild") ||
+      t.includes("board of") ||
+      t.includes("institute") ||
+      t.includes("academy")
+    ) {
+      return "association";
+    }
+
+    if (
+      t.includes("directory") ||
+      t.includes("directories") ||
+      t.includes("listings") ||
+      t.includes("yellowpages") ||
+      t.includes("find") ||
+      t.includes("locator") ||
+      t.includes("find a") ||
+      t.includes("search for a") ||
+      t.includes("book a")
+    ) {
+      return "directory";
+    }
+  }
+
   return "other";
 }
 
@@ -111,7 +171,7 @@ export function classifyDomain(
 // findPhone
 // ---------------------------------------------------------------------------
 
-const NA_PHONE_RE = /(?:\+?1[\s.-]?)?\(?([2-9]\d{2})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})/;
+const NA_PHONE_RE = /(?:\+?1[\s.\-]?)?\(?([2-9]\d{2})\)?[\s.\-]?(\d{3})[\s.\-]?(\d{4})(?!\d)/;
 
 function toE164(raw: string): string | null {
   const digits = raw.replace(/\D/g, "");
@@ -140,6 +200,7 @@ function extractTelHref($: cheerio.CheerioAPI): string | null {
 }
 
 function regexPhoneFromHtml($: cheerio.CheerioAPI): string | null {
+  $("script, style").remove();
   const body = $("body").text() || "";
   const lines = body.split("\n");
   const joined = lines.join(" ");
@@ -150,25 +211,55 @@ function regexPhoneFromHtml($: cheerio.CheerioAPI): string | null {
   return digits;
 }
 
-async function scrapePage(
-  url: string,
-): Promise<string | null> {
-  let resp: Response;
-  try {
-    resp = await safeFetch(url, { headers: { "User-Agent": UA } }, 10_000);
-  } catch {
-    return null;
-  }
-  if (!resp.ok) return null;
+function findTelephoneIn(obj: unknown): string | null {
+  if (typeof obj === "string") return null;
+  if (typeof obj !== "object" || obj === null) return null;
 
-  let html: string;
-  try {
-    html = await resp.text();
-  } catch {
+  if (Array.isArray(obj)) {
+    for (const item of obj) {
+      const result = findTelephoneIn(item);
+      if (result) return result;
+    }
     return null;
   }
 
+  const rec = obj as Record<string, unknown>;
+  if ("telephone" in rec && typeof rec.telephone === "string") {
+    return rec.telephone;
+  }
+
+  for (const val of Object.values(rec)) {
+    const result = findTelephoneIn(val);
+    if (result) return result;
+  }
+
+  return null;
+}
+
+function extractJsonLdPhone($: cheerio.CheerioAPI): string | null {
+  const scripts = $('script[type="application/ld+json"]').toArray();
+  for (const el of scripts) {
+    const text = $(el).html();
+    if (!text) continue;
+    try {
+      const parsed = JSON.parse(text);
+      const phone = findTelephoneIn(parsed);
+      if (phone) return phone;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+function tryExtractPhone(html: string): string | null {
   const $ = cheerio.load(html);
+
+  const jsonLdPhone = extractJsonLdPhone($);
+  if (jsonLdPhone) {
+    const e164 = toE164(jsonLdPhone);
+    if (e164) return e164;
+  }
 
   const telRaw = extractTelHref($);
   if (telRaw && !isObviousNonPhone(telRaw)) {
@@ -186,24 +277,55 @@ async function scrapePage(
 }
 
 export async function findPhone(domain: string): Promise<string | null> {
-  const base = normalizeUrl(domain);
-  let origin: string;
-  try {
-    origin = new URL(base).origin;
-  } catch {
-    return null;
-  }
-
-  let phone = await scrapePage(base);
-  if (phone) return phone;
-
-  const subPaths = ["/contact", "/contact-us", "/about"];
-  for (const path of subPaths) {
-    phone = await scrapePage(`${origin}${path}`);
+  for (const url of candidateUrls(domain)) {
+    const html = await fetchHtml(url);
+    if (!html) continue;
+    const phone = tryExtractPhone(html);
     if (phone) return phone;
   }
 
+  if (firecrawlEnabled()) {
+    try {
+      const html = await scrapeHtml("https://" + domain);
+      if (html) {
+        const phone = tryExtractPhone(html);
+        if (phone) return phone;
+      }
+    } catch {
+      /* never throw */
+    }
+  }
+
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// fetchOrgIdentity
+// ---------------------------------------------------------------------------
+
+export async function fetchOrgIdentity(domain: string): Promise<{ name: string | null; title: string | null }> {
+  const baseUrls = [`https://${domain}`];
+  if (!domain.startsWith("www.")) {
+    baseUrls.push(`https://www.${domain}`);
+  }
+
+  for (const url of baseUrls) {
+    const html = await fetchHtml(url);
+    if (!html) continue;
+
+    const $ = cheerio.load(html);
+
+    let name: string | null = $('meta[property="og:site_name"]').attr("content") ?? null;
+    const rawTitle = $("title").text().trim() || null;
+
+    if (!name && rawTitle) {
+      name = rawTitle.replace(/\s*[|—–-]\s*.+$/, "").trim() || null;
+    }
+
+    return { name, title: rawTitle };
+  }
+
+  return { name: null, title: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -288,15 +410,18 @@ export async function discoverTargets(input: {
       let name = c.domain;
       let companyId: number | null = null;
 
-      try {
-        company = await crustdata.enrichDomain(c.domain);
-      } catch {
-        /* fall back to domain */
-      }
+      const [crustResult, identityResult] = await Promise.all([
+        crustdata.enrichDomain(c.domain).catch(() => null),
+        fetchOrgIdentity(c.domain).catch(() => ({ name: null, title: null })),
+      ]);
+
+      company = crustResult;
 
       if (company) {
         name = company.name || name;
         companyId = company.company_id ?? null;
+      } else {
+        name = identityResult.name ?? c.domain;
       }
 
       let contactPerson: string | null = null;
@@ -336,7 +461,7 @@ export async function discoverTargets(input: {
       }
       if (phone === null) return null;
 
-      const category = classifyDomain(c.domain);
+      const category = classifyDomain(c.domain, identityResult.title);
 
       let whyRelevant: string;
       if (c.score === 1) {

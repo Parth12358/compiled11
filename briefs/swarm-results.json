@@ -1,19 +1,12 @@
 {
   "results": [
     {
-      "id": "firecrawl",
+      "id": "decrust",
       "status": "merged",
       "attempts": 1,
-      "branch": "swarm/firecrawl-0b7943",
-      "merge": "merged"
-    },
-    {
-      "id": "phone",
-      "status": "merged",
-      "attempts": 1,
-      "branch": "swarm/phone-0b7943",
+      "branch": "swarm/decrust-966015",
       "merge": "merged"
     }
   ],
-  "land": "landed 2 merge(s) into takeover (ff-only)"
+  "land": "landed 1 merge(s) into takeover (ff-only)"
 }

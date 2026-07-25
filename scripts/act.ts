@@ -96,8 +96,7 @@ async function main() {
     flags["live-indexnow"] === true || flags["live-all"] === true;
 
   console.error(
-    `keys: CRUSTDATA_API_KEY=${process.env.CRUSTDATA_API_KEY ? "set" : "MISSING"} ` +
-      `VOYGR_API_KEY=${process.env.VOYGR_API_KEY ? "set" : "MISSING"} ` +
+    `keys: VOYGR_API_KEY=${process.env.VOYGR_API_KEY ? "set" : "MISSING"} ` +
       `ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY ? "set" : "MISSING"} ` +
       `OPENROUTER_API_KEY=${process.env.OPENROUTER_API_KEY ? "set" : "MISSING"} ` +
       `GITHUB_TOKEN=${process.env.GITHUB_TOKEN ? "set" : "MISSING"} ` +

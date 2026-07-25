@@ -45,10 +45,8 @@ async function complete(system: string, user: string): Promise<string | null> {
         system,
         messages: [{ role: "user", content: user }],
       });
-      const textBlock = resp.content.find(
-        (b): b is { type: "text"; text: string } => b.type === "text"
-      );
-      return textBlock?.text ?? null;
+      const textBlock = resp.content.find((b) => b.type === "text");
+      return textBlock && "text" in textBlock ? textBlock.text : null;
     }
 
     if (process.env.OPENROUTER_API_KEY) {
@@ -359,7 +357,7 @@ existing_meta_description: ${audit.meta_description || "(none)"}
 Keyword to target: "${gap.keyword}"
 Type: ${gap.type}
 Citations: ${gap.citations}
-Competing domains: ${(gap.competing_domains || []).join(", ") || "(none)"
+Competing domains: ${(gap.competing_domains || []).join(", ") || "(none)"}
 
 Generate a markdown page targeting this keyword.`;
 
